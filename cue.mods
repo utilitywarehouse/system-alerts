@@ -1,0 +1,3 @@
+module github.com/utilitywarehouse/system-cue
+
+cue v0.4.0
