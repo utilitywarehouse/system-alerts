@@ -6,6 +6,7 @@ package workload
 	namespace: *"~\"kube-system|sys-.*\"" | string
 	team:      *"infra" | string
 	groupName: *"\(team)-workload" | string
+	owner:     *"system" | string
 }
 
 #data: {
@@ -53,6 +54,16 @@ package workload
 				impact:    "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
 				action:    "Investigate CPU consumption and adjust pods resources if needed."
 				dashboard: "https://grafana.\(#env.tier)-\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+			}
+		}
+		VolumeDiskUsage: {
+			expr: *"kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * on(namespace) group_left kube_namespace_labels{label_uw_systems_owner=\"\(#env.owner)\"} > 0.9" | string
+			for:  *"5m" | string
+			annotations: {
+				summary:   "Volume {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} has less than 10% available capacity"
+				impact:    "Exhausting available disk space will most likely result in service disruption"
+				action:    "Investigate disk usage and adjust volume size if necessary."
+				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
 			}
 		}
 	}
