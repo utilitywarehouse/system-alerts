@@ -77,6 +77,26 @@ package cluster
 				value:       "{{ $value }}"
 			}
 		}
+		ReadOnlyRootFilesystem: {
+			expr: *"ro_rootfs != 0" | string
+			for:  *"5m" | string
+			annotations: summary: "{{ $labels.instance }} instance has a read only root filesystem for 5m"
+		}
+		CfsslDown: {
+			expr: *"probe_success{job=\"cfssl-probe\"} == 0 or absent(probe_success{job=\"cfssl-probe\"})" | string
+			for:  *"5m" | string
+			annotations: summary: "{{ $labels.instance }} reports down more than 5 minutes."
+		}
+		CertExpireK8SSidecarInjector: {
+			expr: *"(probe_ssl_earliest_cert_expiry{job=\"k8s-sidecar-injector-tls-probe\"} - time()) / 60 / 60 / 24 < 7" | string
+			for:  *"5m" | string
+			annotations: {
+				summary:   "The k8s-sidecar-injector-webhook certificate will expire in < 7 days"
+				impact:    "APIServer will not be able to talk to k8s-sidecar-injector and applications will not have sidecars injected"
+				action:    "Short term: restart k8s-sidecar-injector Deployment. Long term: Make sure k8s-sidecar-injector reloads certificate/key when they change on disk"
+				dashboard: "https://thanos-query-sys-prom.\(#env.tier).\(#env.provider).uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
+			}
+		}
 	}
 }
 
