@@ -6,7 +6,10 @@ kube: {
 	_groups: [...#AlertGroupSchema]
 	_groups: [ for group in #data if !#env.disable.groups[group.name] {
 		name: group.name
-		rules: [ for rule in group.rules if !#env.disable.rules[group.name][rule.alert] {
+		rules: [ for ruleName, rule in group.rules if !#env.disable.rules[group.name][ruleName] {
+			alert: ruleName
+			labels: team:          group.team
+			labels: send_resolved: *"true" | "false"
 			rule
 		}]
 	}]

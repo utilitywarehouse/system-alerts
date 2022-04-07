@@ -18,8 +18,8 @@ _disable: {
 	rules: {
 		for group in #data {
 			"\( group.name )": {
-				for rule in group.rules {
-					"\( rule.alert )": *false | bool
+				for ruleName, rule in group.rules {
+					"\( ruleName )": *false | bool
 				}
 			}
 		}
