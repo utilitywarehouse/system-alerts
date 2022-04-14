@@ -16,17 +16,17 @@ package workload
 		DaemonsetMissingReplicas: {
 			expr: *"kube_daemonset_status_number_ready{namespace=\(#env.namespace)} != kube_daemonset_status_desired_number_scheduled{namespace=\(#env.namespace)}" | string
 			for:  *"15m" | string
-			annotations: summary: "{{ $labels.daemonset }} daemonset in {{ $labels.namespace }} namespace has missing replicas for 15m"
+			annotations: summary: "{{ $labels.daemonset }} daemonset in {{ $labels.namespace }} namespace has missing replicas for \(for)"
 		}
 		DeploymentMissingReplicas: {
 			expr: *"kube_deployment_status_replicas_available{namespace=\(#env.namespace)} != kube_deployment_status_replicas{namespace=\(#env.namespace)}" | string
 			for:  *"15m" | string
-			annotations: summary: "{{ $labels.deployment }} deployment in {{ $labels.namespace }} namespace has missing replicas for 15m"
+			annotations: summary: "{{ $labels.deployment }} deployment in {{ $labels.namespace }} namespace has missing replicas for \(for)"
 		}
 		StatefulsetMissingReplicas: {
 			expr: *"kube_statefulset_status_replicas_ready{namespace=\(#env.namespace)} != kube_statefulset_status_replicas{namespace=\(#env.namespace)}" | string
 			for:  *"15m" | string
-			annotations: summary: "{{ $labels.statefulset }} statefulset in {{ $labels.namespace }} namespace has missing replicas for 15m"
+			annotations: summary: "{{ $labels.statefulset }} statefulset in {{ $labels.namespace }} namespace has missing replicas for \(for)"
 		}
 		PodOOMing: {
 			expr: *"rate(kube_pod_container_status_terminated_reason{reason=\"OOMKilled\",namespace=\(#env.namespace)}[15m]) != 0" | string
@@ -34,7 +34,7 @@ package workload
 				summary:   "Pod {{ $labels.namespace }}/{{ $labels.pod }} has OOMed in last 15 minutes."
 				impact:    "{{$labels.pod}} service might not be working as expected."
 				action:    "Investigate memory consumption and adjust pods resources."
-				dashboard: "https://grafana.\(#env.tier)-\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
 			}
 		}
 		PodRestartingOften: {
@@ -53,7 +53,7 @@ package workload
 				summary:   "{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled."
 				impact:    "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
 				action:    "Investigate CPU consumption and adjust pods resources if needed."
-				dashboard: "https://grafana.\(#env.tier)-\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
 			}
 		}
 		VolumeDiskUsage: {
