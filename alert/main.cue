@@ -8,8 +8,7 @@ kube: {
 		name: group.name
 		rules: [ for ruleName, rule in group.rules if !#env.disable.rules[group.name][ruleName] {
 			alert: ruleName
-			labels: team:          group.team
-			labels: send_resolved: *"true" | "false"
+			labels: team: group.team
 			rule
 		}]
 	}]

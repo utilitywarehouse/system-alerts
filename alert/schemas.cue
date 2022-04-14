@@ -8,8 +8,8 @@ package alert
 // Adapted from "github.com/prometheus/prometheus/model/rulefmt"'s `Rule`
 // and "github.com/prometheus/common/model"'s `durationRE`
 #RuleSchema: {
-	alert?:  string                                                                                               @go(Alert)
-  #RuleDataSchema
+	alert?: string @go(Alert)
+	#RuleDataSchema
 }
 
 #AlertGroupDataMapSchema: [groupName=_]: {

@@ -53,20 +53,3 @@ _alert: alert & {#env: _env} & {#data: _data}
 // add the alert's kube to the main `kube` field
 kube: _alert.kube
 ```
-
-# ToDo
-* add label with team
-```
-#AlertGroup: {
-  name: string
-	rules: [...#Rule]
-	rules: [...{
-    labels: team: string
-  }]
-}
-//#AlertModuleMap: [ID=_]: {
-//	#enabled: *true | false
-//	alert:    ID
-//	labels: {team: string, send_resolved: *"true" | "false"}
-//}
-```
