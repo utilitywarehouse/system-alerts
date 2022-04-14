@@ -1,13 +1,8 @@
 package kubeApplier
 
-#env: {
-	team:      *"infra" | string
-	groupName: *"kube-applier" | string
-}
-
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "kube-applier"
+	team: "infra"
 	rules: {
 		KubeApplierGitSyncError: {
 			expr: *"time() - kube_applier_git_last_sync_timestamp{kubernetes_namespace=\"sys-kube-applier\"} > 3600" | string

@@ -3,13 +3,11 @@ package vault
 #env: {
 	provider:  string
 	tier:      string
-	team:      *"infra" | string
-	groupName: *"vault" | string
 }
 
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "vault"
+	team: "infra"
 	// Recommendations from https://s3-us-west-2.amazonaws.com/hashicorp-education/whitepapers/Vault/Vault-Consul-Monitoring-Guide.pdf
 	rules: {
 		VaultHighGCDuration: {

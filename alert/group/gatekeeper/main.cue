@@ -3,13 +3,11 @@ package gatekeeper
 #env: {
 	provider:  string
 	tier:      string
-	team:      *"infra" | string
-	groupName: *"gatekeeper" | string
 }
 
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "gatekeeper"
+	team: "infra"
 	rules: {
 		GatekeeperWebhookUnreachable: {
 			expr: *"probe_success{job=\"gatekeeper-webhooks\"} == 0" | string

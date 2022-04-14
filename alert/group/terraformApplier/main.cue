@@ -1,13 +1,8 @@
 package terraformApplier
 
-#env: {
-	team:      *"infra" | string
-	groupName: *"terraform-applier" | string
-}
-
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "terraform-applier"
+	team: "infra"
 	rules: {
 		TerraformApplierErrors: {
 			expr: *"terraform_applier_module_apply_success{kubernetes_namespace=~\"kube-system|sys-.+\"} == 0" | string

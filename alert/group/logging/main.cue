@@ -3,13 +3,11 @@ package logging
 #env: {
 	provider:  string
 	tier:      string
-	team:      *"infra" | string
-	groupName: *"logging" | string
 }
 
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "logging"
+	team: "infra"
 	rules: {
 		"LogForwarderIsDown(external)": {
 			expr: *"up{job=\"log-forwarder\"} < 1" | string
