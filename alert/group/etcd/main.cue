@@ -3,13 +3,11 @@ package etcd
 #env: {
 	provider:  string
 	tier:      string
-	team:      *"infra" | string
-	groupName: *"etcd" | string
 }
 
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "etcd"
+	team: "infra"
 	rules: {
 		KubernetesEtcdNodeDown: {
 			expr: *"up{job=\"etcd\"} != 1" | string
