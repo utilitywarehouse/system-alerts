@@ -1,13 +1,8 @@
 package externalDNS
 
-#env: {
-	team:      *"infra" | string
-	groupName: *"external-dns" | string
-}
-
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "external-dns"
+	team: "infra"
 	rules: {
 		ExternalDnsRegistryErrors: {
 			expr: *"rate(registry_errors_total{app=\"external-dns\"}[5m]) > 0" | string
