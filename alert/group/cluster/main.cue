@@ -3,21 +3,19 @@ package cluster
 #env: {
 	provider:  string
 	tier:      string
-	team:      *"infra" | string
-	groupName: *"cluster" | string
 }
 
 #data: {
-	name: #env.groupName
-	team: #env.team
+	name: "cluster"
+	team: "infra"
 	rules: {
 		KubeletCadvisorNotResponding: {
 			expr: *"up{job=\"kubernetes-nodes\"} != 1" | string
 			for:  *"10m" | string
 			annotations: {
-				description: "{{ $labels.instance }} ({{ $labels.role }}) has been down for more than 10 minutes."
+				description: "{{ $labels.instance }} ({{ $labels.role }}) has been down for more than \(for)."
 				summary:     "Kubernetes node is down"
-				dashboard:   "https://grafana.\(#env.tier)-\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
+				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
 			}
 		}
 		KubernetesApiDown: {
@@ -32,7 +30,7 @@ package cluster
 			expr: *"up{service=\"kube-scheduler\"} != 1" | string
 			for:  *"5m" | string
 			annotations: {
-				description: "{{ $labels.pod }} scheduler has been down for several minutes."
+				description: "{{ $labels.pod }} scheduler has been down for \(for)."
 				summary:     "Kubernetes scheduler {{ $labels.pod }} is down"
 			}
 		}
@@ -80,12 +78,12 @@ package cluster
 		ReadOnlyRootFilesystem: {
 			expr: *"ro_rootfs != 0" | string
 			for:  *"5m" | string
-			annotations: summary: "{{ $labels.instance }} instance has a read only root filesystem for 5m"
+			annotations: summary: "{{ $labels.instance }} instance has a read only root filesystem for \(for)"
 		}
 		CfsslDown: {
 			expr: *"probe_success{job=\"cfssl-probe\"} == 0 or absent(probe_success{job=\"cfssl-probe\"})" | string
 			for:  *"5m" | string
-			annotations: summary: "{{ $labels.instance }} reports down more than 5 minutes."
+			annotations: summary: "{{ $labels.instance }} reports down more than \(for)."
 		}
 		CertExpireK8SSidecarInjector: {
 			expr: *"(probe_ssl_earliest_cert_expiry{job=\"k8s-sidecar-injector-tls-probe\"} - time()) / 60 / 60 / 24 < 7" | string
