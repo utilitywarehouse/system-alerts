@@ -8,7 +8,7 @@ package matchbox
 			expr: *"up{job=\"matchbox-node\"} != 1" | string
 			for:  *"10m" | string
 			annotations: {
-				description: "{{ $labels.instance }} reports down more than |(for)."
+				description: "{{ $labels.instance }} reports down more than \(for)."
 				summary:     "Matchbox node exporter job down"
 			}
 		}
