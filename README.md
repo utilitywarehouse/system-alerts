@@ -26,9 +26,9 @@ package kube
 
 // import this package and two addional alert groups
 import (
-	"github.com/utilitywarehouse/system-cue/alert"
-	"github.com/utilitywarehouse/system-cue/alert/group/aws"
-	"github.com/utilitywarehouse/system-cue/alert/group/etcd"
+	"github.com/utilitywarehouse/system-alerts:alerts"
+	"github.com/utilitywarehouse/system-alerts/group/aws"
+	"github.com/utilitywarehouse/system-alerts/group/etcd"
 )
 
 // define environment
@@ -45,13 +45,13 @@ _data: "\(_etcd.alertGroup.name)": _etcd.alertGroup
 // if needed, edit some group's data, like relaxing some alert threshold in dev
 //_data: myEtcdAlertGroup: rules: ETCDMemberCommunicationSlow: expr: "mymetric > 0.1"
 
-// "instantiate" the alert package, providing the environment and the additional groups
-_alert: alert & {#env: _env} & {#data: _data}
+// "instantiate" the alerts package, providing the environment and the additional groups
+_alerts: alerts & {#env: _env} & {#data: _data}
 
 // if needed, disable some group or alert
-//_alert: alert & {#env: disable: groups: myEtcdAlertGroup: true
-//_alert: alert & {#env: disable: rules: myEtcdAlertGroup: ETCDMemberCommunicationSlow: true
+//_alerts: alerts & {#env: disable: groups: myEtcdAlertGroup: true
+//_alerts: alerts & {#env: disable: rules: myEtcdAlertGroup: ETCDMemberCommunicationSlow: true
 
-// add the alert's kube to the main `kube` field
-kube: _alert.kube
+// add the alerts' kube to the main `kube` field
+kube: _alerts.kube
 ```

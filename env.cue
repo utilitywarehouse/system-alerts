@@ -1,4 +1,4 @@
-package alert
+package alerts
 
 #env: {
 	configMapName: *"alerts-\(fileName)" | string
