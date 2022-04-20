@@ -1,4 +1,4 @@
-package alert
+package alerts
 
 #AlertGroupSchema: {
 	name: string
