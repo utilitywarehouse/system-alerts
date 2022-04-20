@@ -1,20 +1,22 @@
-# Alerts
-This package provides a configmap with alerts to be used by prometheus.
+# system-alerts
+Cue package that generates a configmap with prometheus alerts
+
+It follows the conventions and recommendations of https://github.com/utilitywarehouse/documentation/blob/master/infra/cue/README.md
 
 ## File structure
-* `data.cue`: constraints for the `#data` definition
-* `env.cue`: `#env` definition of the "environmental variables" supported
 * `main.cue`: exported fields
 * `schemas.cue`: definitions for schemas, providing validation
+* `env.cue`: `#env` definition of the "environmental variables" supported
+* `data.cue`: constraints for the `#data` definition
 * `*-data.cue`: alert group values
-* `alertGroups/`: collection of alert groups values
+* `group/`: collection of alert groups values
 
 ## Usage
 The configmap is exported as usual via a "kube" field.
 
 The configurable definitions are:
 * `#env`: environmental variables to be used by the alerts defined inside this package. Also used to disable specific groups or alerts
-* `#data`: a map of the alert groups that will be added to the configmap. It can be used to modify the default data and to provide additional groups (like the ones inside `alertGroups/`)
+* `#data`: a map of the alert groups that will be added to the configmap. It can be used to modify the default data and to provide additional groups (like the ones inside `group/`)
 
 ## Example
 A main.cue file making use of this package could look like:
