@@ -28,9 +28,6 @@ package gatekeeper
 		GatekeeperWebhookErrors: {
 			expr: *"sum without (instance) (rate(apiserver_admission_webhook_rejection_count{error_type!=\"no_error\",name=~\"^.*gatekeeper.sh$\"}[5m])) > 0" | string
 			for:  *"1m" | string
-			labels: {
-				send_resolved: "false"
-			}
 			annotations: {
 				description: """
 					Admission requests were rejected by {{ $labels.name }} due to an error. This may indicate
