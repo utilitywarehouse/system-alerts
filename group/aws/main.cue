@@ -26,6 +26,14 @@ package aws
 				logs:        "https://eu-west-1.console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logEventViewer:group=cloudtrail-multi-region;filter=%257B%2520%2524.userIdentity.type%2520%253D%2520%2522Root%2522%2520%2526%2526%2520%2524.userIdentity.invokedBy%2520NOT%2520EXISTS%2520%2526%2526%2520%2524.eventType%2521%253D%2520%2522AwsServiceEvent%2522%2520%257D;start=PT1H"
 			}
 		}
+		CredentialsDisablerJob: {
+			expr: *'(time() - max(kube_job_status_completion_time{job_name=~"iam-credentials-disabler.*"}))/60/60 > 72' | string
+			labels: send_resolved: "false"
+			annotations: {
+				summary:     "AWS CredentialsDisabler Job (running in sys-cis-benchmark namespace) has not run in over 72h"
+				action:      "Check that Pod is running / check logs."
+			}
+		}
 	}
 }
 
