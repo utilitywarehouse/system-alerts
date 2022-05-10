@@ -28,7 +28,6 @@ package aws
 		}
 		CredentialsDisablerJob: {
 			expr: *'(time() - max(kube_job_status_completion_time{job_name=~"iam-credentials-disabler.*"}))/60/60 > 72' | string
-			labels: send_resolved: "false"
 			annotations: {
 				summary:     "AWS CredentialsDisabler Job (running in sys-cis-benchmark namespace) has not run in over 72h"
 				action:      "Check that Pod is running / check logs."
