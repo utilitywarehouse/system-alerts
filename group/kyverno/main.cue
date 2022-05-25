@@ -1,7 +1,12 @@
 package kyverno
 
+#env: {
+	provider:  string
+	tier:      string
+}
+
 #data: {
-	name: "kyvero"
+	name: "kyverno"
 	team: "infra"
 	rules: {
 		KyvernoBackgroundCheckRuleFailure: {
