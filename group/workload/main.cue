@@ -2,7 +2,7 @@ package workload
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 	namespace: *"~\"kube-system|sys-.*\"" | string
 	team:      *"infra" | string
 	groupName: *"\(team)-workload" | string
@@ -34,7 +34,7 @@ package workload
 				summary:   "Pod {{ $labels.namespace }}/{{ $labels.pod }} has OOMed in last 15 minutes."
 				impact:    "{{$labels.pod}} service might not be working as expected."
 				action:    "Investigate memory consumption and adjust pods resources."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
 			}
 		}
 		PodRestartingOften: {
@@ -53,7 +53,7 @@ package workload
 				summary:   "{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled."
 				impact:    "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
 				action:    "Investigate CPU consumption and adjust pods resources if needed."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
 			}
 		}
 		VolumeDiskUsage: {
@@ -63,7 +63,7 @@ package workload
 				summary:   "Volume {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} has less than 10% available capacity"
 				impact:    "Exhausting available disk space will most likely result in service disruption"
 				action:    "Investigate disk usage and adjust volume size if necessary."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
 			}
 		}
 	}

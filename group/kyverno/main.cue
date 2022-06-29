@@ -2,7 +2,7 @@ package kyverno
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -20,7 +20,7 @@ package kyverno
                                         `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.resource_namespace }} get events`
                                         """
 				summary: "Kyverno policy: {{ $labels.policy_name }} rule: {{ $labels.rule_name }} is failing in {{ $labels.resource_namespace }} namespace."
-                                dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/Rg8lWBG7k/kyverno"
+                                dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/Rg8lWBG7k/kyverno"
 			}
 		}
 	}

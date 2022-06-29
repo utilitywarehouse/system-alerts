@@ -2,7 +2,7 @@ package gatekeeper
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -46,7 +46,7 @@ package gatekeeper
 					The gatekeeper audit has identified violations in the cluster.
 
 					You can inspect violations with this command:
-					`kubectl --context=\(#env.tier)-\(#env.provider) get constraint -o json | jq '.items[] | select(.status.totalViolations != 0) | .status.violations'`
+					`kubectl --context=\(#env.environment)-\(#env.provider) get constraint -o json | jq '.items[] | select(.status.totalViolations != 0) | .status.violations'`
 
 					"""
 

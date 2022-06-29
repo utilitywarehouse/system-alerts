@@ -2,7 +2,7 @@ package etcd
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -17,7 +17,7 @@ package etcd
 				summary:     "Kubernetes etcd node is down"
 				impact:      "etcd cluster has limited node redundancy."
 				action:      "Check etcd service status on {{$labels.instance}}."
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 			}
 		}
 		KubernetesEtcdNoLeader: {
@@ -36,7 +36,7 @@ package etcd
 				summary:   "{{$labels.instance}} etcd has many requests failed last 10min"
 				impact:    "{{$labels.instance}} etcd is returning errors."
 				action:    "Check RPC failed rate on dashboard and {{$labels.instance}} etcd service logs."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 			}
 		}
 		// https://github.com/etcd-io/etcd/issues/11100#issuecomment-613776203
@@ -51,7 +51,7 @@ package etcd
 		//  summary:   "{{$labels.instance}} member communication is slow"
 		//  impact:    "{{$labels.instance}} is responding slowly."
 		//  action:    "Check {{$labels.instance}} etcd service logs."
-		//  dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+		//  dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 		// }
 		//}
 		KubernetesEtcdHighNumberOfFailedProposals: {
@@ -61,7 +61,7 @@ package etcd
 				summary:   "{{$labels.instance}} etcd member has a high number of raft proposals failing."
 				impact:    "{{$labels.instance}} etcd might not be working."
 				action:    "Check Raft proposals dashboard and {{$labels.instance}} etcd service logs."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 			}
 		}
 		KubernetesEtcdHighDiskSyncDurations: {
@@ -71,7 +71,7 @@ package etcd
 				summary:   "{{$labels.instance}} etcd fsync durations are high"
 				impact:    "{{$labels.instance}} etcd is responding slowly."
 				action:    "Check Disk Sync Duration and resources for {{$labels.instance}}."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 			}
 		}
 		KubernetesEtcdHighCommitDurations: {
@@ -81,7 +81,7 @@ package etcd
 				summary:   "{{$labels.instance}} etcd commit durations are high"
 				impact:    "{{$labels.instance}} etcd is responding slowly."
 				action:    "Check {{$labels.instance}} resources."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/mYdnw3aik/kubernetes-etcd"
 			}
 		}
 		EtcdBackupJobFailed: {

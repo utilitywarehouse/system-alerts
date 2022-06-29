@@ -2,7 +2,7 @@ package cluster
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -15,7 +15,7 @@ package cluster
 			annotations: {
 				description: "{{ $labels.instance }} ({{ $labels.role }}) has been down for more than \(for)."
 				summary:     "Kubernetes node is down"
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
 			}
 		}
 		KubernetesApiDown: {
@@ -92,7 +92,7 @@ package cluster
 				summary:   "The k8s-sidecar-injector-webhook certificate will expire in < 7 days"
 				impact:    "APIServer will not be able to talk to k8s-sidecar-injector and applications will not have sidecars injected"
 				action:    "Short term: restart k8s-sidecar-injector Deployment. Long term: Make sure k8s-sidecar-injector reloads certificate/key when they change on disk"
-				dashboard: "https://thanos-query-sys-prom.\(#env.tier).\(#env.provider).uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
+				dashboard: "https://thanos-query-sys-prom.\(#env.environment).\(#env.provider).uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
 			}
 		}
 	}

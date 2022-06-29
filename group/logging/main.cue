@@ -2,7 +2,7 @@ package logging
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -22,7 +22,7 @@ package logging
 			for:  *"2h" | string
 			annotations: {
 				summary:   "{{ $labels.kubernetes_pod_name }} can't ingest logs from {{ $labels.input }} for 2h"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
 			}
 		}
 		"LogForwarderFailingToInput(external)": {
@@ -30,7 +30,7 @@ package logging
 			for:  *"2h" | string
 			annotations: {
 				summary:   "{{ $labels.instance }} can't ingest logs from {{ $labels.input }} for 2h"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
 			}
 		}
 		"LogForwarderFailingToOutput(kube)": {
@@ -38,7 +38,7 @@ package logging
 			for:  *"15m" | string
 			annotations: {
 				summary:   "{{ $labels.kubernetes_pod_name }} can't forward logs for 15m"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
 			}
 		}
 		"LogForwarderFailingToOutput(external)": {
@@ -46,7 +46,7 @@ package logging
 			for:  *"15m" | string
 			annotations: {
 				summary:   "{{ $labels.instance }} can't forward logs for 15m"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
 			}
 		}
 		"LogForwarderBufferFillingUp(kube)": {
@@ -54,7 +54,7 @@ package logging
 			for:  *"15m" | string
 			annotations: {
 				summary:   "Forwarder buffer is over 5%"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
 			}
 		}
 		"LogForwarderBufferFillingUp(external)": {
@@ -62,7 +62,7 @@ package logging
 			for:  *"15m" | string
 			annotations: {
 				summary:   "Forwarder buffer is over 5%"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
 			}
 		}
 	}

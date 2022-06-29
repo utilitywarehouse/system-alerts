@@ -2,7 +2,7 @@ package vault
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -16,7 +16,7 @@ package vault
 			annotations: {
 				description: "{{ $labels.kubernetes_pod_name }} spent more than 2sec/min running GC"
 				summary:     "{{ $labels.kubernetes_pod_name }} is taking too long to GC"
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		VaultScarceLeaderContacts: {
@@ -25,7 +25,7 @@ package vault
 			annotations: {
 				description: "{{ $labels.kubernetes_pod_name }} leader is taking more than 200ms to contact"
 				summary:     "{{ $labels.kubernetes_pod_name }} contact with leader degraded"
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		// Adapted from https://github.com/giantswarm/vault-exporter/blob/master/vault-mixin/alerts.libsonnet
@@ -35,7 +35,7 @@ package vault
 			annotations: {
 				description: "This may indicate an issue with the 'initializer' sidecar"
 				summary:     "{{ $labels.kubernetes_pod_name }} is uninitialized"
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		VaultSealed: {
@@ -44,7 +44,7 @@ package vault
 			annotations: {
 				description: "This may indicate an issue with the 'unsealer' sidecar"
 				summary:     "{{ $labels.kubernetes_pod_name }} is sealed"
-				dashboard:   "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard:   "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		VaultActiveCount: {
@@ -57,7 +57,7 @@ package vault
 					"""
 
 				summary:   "There are {{ $value }} active Vault instance(s)"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		VaultUp: {
@@ -70,7 +70,7 @@ package vault
 					"""
 
 				summary:   "Vault exporter for '{{ $labels.kubernetes_pod_name }}' cannot talk to Vault."
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/1ysHZE2Wz/vault"
 			}
 		}
 		VaultServerUnreachable: {
@@ -100,7 +100,7 @@ package vault
 					"""
 
 				summary:   "The credentials for '{{ $labels.kubernetes_pod_name }}' have expired"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
 			}
 		}
 		VaultSidecarDown: {
@@ -114,7 +114,7 @@ package vault
 					"""
 
 				summary:   "The vault credentials agent for '{{ $labels.kubernetes_pod_name }}' is down"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
 			}
 		}
 		VaultSidecarMissing: {
@@ -129,7 +129,7 @@ package vault
 					"""
 
 				summary:   "Vault sidecar is missing from {{ $labels.namespace }}/{{ $labels.pod }}"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/U61wpstMk/vault-credentials-sidecars"
 			}
 		}
 	}

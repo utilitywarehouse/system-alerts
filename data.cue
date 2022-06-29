@@ -1,3 +1,0 @@
-package alerts
-
-#data: #AlertGroupDataMapSchema

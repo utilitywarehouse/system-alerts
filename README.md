@@ -32,7 +32,7 @@ import (
 )
 
 // define environment
-_env: {provider: "aws", tier: "exp-1"}
+_env: {provider: "aws", environment: "exp-1"}
 
 // "instantiate" groups with the local environment
 _aws: aws & {#env: _env}

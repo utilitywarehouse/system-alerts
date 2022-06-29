@@ -2,7 +2,7 @@ package thanos
 
 #env: {
 	provider:  string
-	tier:      string
+	environment:      string
 }
 
 #data: {
@@ -16,7 +16,7 @@ package thanos
 				summary:   "Thanos compaction has failed to run and now is halted"
 				impact:    "Long term storage queries will be slower"
 				action:    "Check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact"
 			}
 		}
 		ThanosCompactCompactionsFailed: {
@@ -26,7 +26,7 @@ package thanos
 				summary:   "Thanos Compact is failing compaction"
 				impact:    "Long term storage queries will be slower"
 				action:    "Check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact"
 			}
 		}
 		ThanosSidecarPrometheusDown: {
@@ -36,7 +36,7 @@ package thanos
 				summary:   "Thanos Sidecar cannot connect to Prometheus"
 				impact:    "Prometheus configuration is not being refreshed"
 				action:    "Check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/IOteEKHik/thanos-sidecar?refresh=30s&orgId=1&var-interval=1m&var-labelvalue=prometheus&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=name"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/IOteEKHik/thanos-sidecar?refresh=30s&orgId=1&var-interval=1m&var-labelvalue=prometheus&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=name"
 			}
 		}
 		ThanosRuleBadConfig: {
@@ -46,7 +46,7 @@ package thanos
 				summary:   "Thanos Rule failed to load alert config"
 				impact:    "On Thanos Rule restart alerts wont be loaded."
 				action:    "Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace"
-				dashboard: "https://grafana.\(#env.tier).\(#env.provider).uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule"
+				dashboard: "https://grafana.\(#env.environment).\(#env.provider).uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule"
 			}
 		}
 	}

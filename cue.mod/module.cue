@@ -1,1 +1,1 @@
-module: "github.com/utilitywarehouse/system-cue"
+module: "github.com/utilitywarehouse/system-alerts"
