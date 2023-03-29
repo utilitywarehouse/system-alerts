@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-kube-applier
+              mountPath: /var/thanos/rule-templates/kube-applier
+      volumes:
+        - name: rule-templates-kube-applier
+          configMap:
+            name: alert-templates-kube-applier

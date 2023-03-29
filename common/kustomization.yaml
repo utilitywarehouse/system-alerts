@@ -1,8 +1,11 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
 
 configMapGenerator:
   - files:
       - all.yaml.tmpl=all.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
     name: alert-templates-common
+
+patches:
+  - path: volume.yaml
