@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-cis-aws
+              mountPath: /var/thanos/rule-templates/cis-aws
+      volumes:
+        - name: rule-templates-cis-aws
+          configMap:
+            name: alert-templates-cis-aws

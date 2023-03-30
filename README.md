@@ -1,69 +1,74 @@
 Contains alerts templates under a single base
 
-# Available bases
+# Available alert bases
 
 - common: Contains templates for alerts we deploy everywhere
 - cis-aws: Contains templates for alerts based on CIS Benchmark for AWS
 - kube-applier: Contains templates for kube-applier alerts
 
+# Patch thanos-rule deployment
+
+We need to patch thanos ruler to add an init container that will render alerts
+from the templates and put them in a volume for thanos-rule container. The base
+to do that can be found [here](./thanos-rule-template).
+
 # Environment variables
 
-The following environment variables are used and expected to be patched:
+The following environment variables are used and expected to be patched
+downstream:
+
 - ENVIRONMENT: exp-1|dev|prod
 - PROVIDER: aws|gcp|merit
 
-# Patch inside an init container
+# How to use it
 
-Include the needed bases under `kustomization.yaml` like:
+Bases need to be included as `components` in the local base to be evaluated
+after the resources of the parent kustomization (overlay or component) have been
+accumulated. This is to be able to successfully identify and patch thanos-rule
+deployment that will be coming from a different remote base. Note that
+`thanos-rule-template` base should always be included. For example:
 
 ```
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - github.com/utilitywarehouse/system-alerts/common?ref=master
+components:
+  - github.com/utilitywarehouse/system-alerts/thanos-rule-template?ref=master # Patch thanos-rule to render alerts
+  # Include the needed alerts
   - github.com/utilitywarehouse/system-alerts/cis-aws?ref=master
+  - github.com/utilitywarehouse/system-alerts/common?ref=master
   - github.com/utilitywarehouse/system-alerts/kube-applier?ref=master
+
+patches:
+  - path: thanos-rule-init.yaml
 ```
 
-Then mount everything under /var/thanos/rule-templates/ dir. Templates
-configMaps should be expected to follow the patter `alert-templates-<base-name>.
-Run the following initContainer to render all alerts under the same emptyDir,
-which will be shared with thanos-rule container:
+Then patch the initContainer with the needed environment variables:
 
 ```
+$ cat thanos-rule-init.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
       initContainers:
         - name: render-alerts
-          image: alpine
           env:
             - name: ENVIRONMENT
               value: exp-1
             - name: PROVIDER
               value: aws
-          args:
-            - /bin/sh
-            - -c
-            - |
-              apk add --no-cache gettext;
-              for file in $(ls /var/thanos/rule-templates/*.tmpl); do
-                f=$(basename $file);
-                envsubst '${ENVIRONMENT},${PROVIDER}' < $file > /var/thanos/rules/${f%.*};
-              done;
-          volumeMounts:
-            - name: rules-rendered
-              mountPath: /var/thanos/rules
-            - name: rule-templates
-              mountPath: /var/thanos/rule-templates
-      volumes:
-        - name: rules-rendered
-          value:
-            emptyDir: {}
-        - name: rule-templates
-          projected:
-            sources:
-            - configMap:
-                name: alert-templates-common
-            - configMap:
-                name: alert-templates-cis-aws
-            - configMap:
-                name: alert-templates-kube-applier
 ```
+
+# How to add new bases
+
+When adding a new base one should create a configMap with the needed templates
+and must patch thanos-rule to mount the configMap under
+`/var/thanos/rule-templates/<base-name>` directory.
+Note that volume names must follow the pattern:
+- `rule-templates-<base-name>`
+and mount points should follow the pattern:
+- `/var/thanos/rule-templates/<base-name>`
+to make sure that volumes from different bases do not clash.
