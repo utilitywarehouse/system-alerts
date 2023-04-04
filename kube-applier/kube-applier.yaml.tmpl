@@ -2,7 +2,7 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
-- name: kube-applier
+  - name: kube-applier
     rules:
       - alert: KubeApplierGitSyncError
         expr: time() - kube_applier_git_last_sync_timestamp{kubernetes_namespace="sys-kube-applier"} > 3600
