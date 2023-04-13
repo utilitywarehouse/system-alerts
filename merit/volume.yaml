@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-merit
+              mountPath: /var/thanos/rule-templates/merit
+      volumes:
+        - name: rule-templates-merit
+          configMap:
+            name: alert-templates-merit

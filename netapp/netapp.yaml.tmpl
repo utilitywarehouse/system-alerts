@@ -1,0 +1,49 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: netapp
+    rules:
+      - alert: NetappExporterDown
+        expr: up{job="netapp-exporter"} != 1
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          description: "{{ $labels.job }} reports down more than 10 minutes."
+          summary: Netapp exporter job down
+      - alert: NetappVserverAdminState
+        expr: netapp_vserver_state!=1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Admin state of vserver {{$labels.vserver}} on netapp {{$labels.cluster}} is not in running mode"
+      - alert: NetappVserverOperationalState
+        expr: netapp_vserver_operational_state!=1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Opertional state of vserver {{$labels.vserver}} on netapp {{$labels.cluster}} is not in running mode"
+      - alert: NetappAggrUsage
+        expr: round(netapp_aggr_percent_used_capacity) >= 90
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Aggregate {{$labels.aggr}} on netapp {{$labels.cluster}} is more than 90% utilised"
+      - alert: NetappVolumeState
+        expr: netapp_volume_state!=1
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Volume {{$labels.volume}} on netapp {{$labels.cluster}} is not online"
+      - alert: NetappDiskFailedState
+        expr: netapp_storage_disk_is_failed!=0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Disk {{$labels.disk}} (model: {{$labels.model}}) on netapp {{$labels.cluster}} has failed"

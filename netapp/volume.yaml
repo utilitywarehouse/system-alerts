@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-netapp
+              mountPath: /var/thanos/rule-templates/netapp
+      volumes:
+        - name: rule-templates-netapp
+          configMap:
+            name: alert-templates-netapp
