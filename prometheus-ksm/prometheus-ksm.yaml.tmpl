@@ -1,0 +1,21 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: prometheus-ksm
+    rules:
+      # We need the following alert for clusters where we deploy a separate
+      # prometheus instance to scrape kube-state-metrics.
+      # kube-state-metrics are the metrics used in alerts keeping track on
+      # deployment/sts missing replicas, so prometheus-ksm needs to be checked
+      # explicitly. The other prometheus would be covered by the missing
+      # replica alerts of prometheus-ksm
+      - alert: PrometheusKsmIsDown
+        expr: up{job="prometheus-ksm"} == 0 or absent(up{job="prometheus-ksm"})
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: prometheus-ksm job is down
+          impact: "All alerts that require kubernetes metadata are not working"
+          action: "Check sys-prom and figure out why prometheus-ksm is not healthy"

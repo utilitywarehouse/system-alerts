@@ -181,19 +181,6 @@ groups:
           impact: "APIServer will not be able to talk to k8s-sidecar-injector and applications will not have sidecars injected"
           action: "Short term: restart k8s-sidecar-injector Deployment. Long term: Make sure k8s-sidecar-injector reloads certificate/key when they change on disk"
           dashboard: "https://thanos-query-sys-prom.$ENVIRONMENT.$PROVIDER.uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
-      # kube-state-metrics are the metrics used in alerts keeping track on
-      # deployment/sts missing replicas, so prometheus-ksm needs to be checked
-      # explicitly. The other prometheus would be covered by the missing
-      # replica alerts of prometheus-ksm
-      - alert: PrometheusKsmIsDown
-        expr: up{job="prometheus-ksm"} == 0 or absent(up{job="prometheus-ksm"})
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          summary: prometheus-ksm job is down
-          impact: "All alerts that require kubernetes metadata are not working"
-          action: "Check sys-prom and figure out why prometheus-ksm is not healthy"
   - name: kyverno
     rules:
       - alert: KyvernoBackgroundCheckRuleFailure
