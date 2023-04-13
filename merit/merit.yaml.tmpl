@@ -3,6 +3,7 @@
 
 groups:
   - name: http-probe
+    rules:
       - alert: HttpEndpointUnreachable
         expr: probe_success{job="http-endpoint-check"} == 0
         for: 5m
