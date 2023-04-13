@@ -25,12 +25,10 @@ spec:
       containers:
         - name: thanos-rule
           volumeMounts:
-            - $patch: delete
-              name: rules
             - name: rules-rendered
               mountPath: /var/thanos/rules
       volumes:
-        # $patch: delete doesn't seem to work here, so dropping the upstream
+        # $patch: replace doesn't seem to work here, so dropping the upstream
         # rules volume completely and using a new one for rendered alerts.
         - $patch: delete
           name: rules
