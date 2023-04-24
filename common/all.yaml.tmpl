@@ -482,13 +482,21 @@ groups:
   - name: wiresteward
     rules:
       - alert: WirestewardNodeDown
-        expr: up{job="node-exporter", instance=~"..private-wiresteward.*"} != 1 or absent(up{job="node-exporter", instance=~"..private-wiresteward.*"})
+        expr: up{job="node-exporter", instance=~"^\\d\\.private-wiresteward.+$"} != 1 or absent(up{job="node-exporter", instance=~"^\\d\\.private-wiresteward.+$"})
         for: 10m
         labels:
           team: infra
         annotations:
           description: "{{ $labels.instance }} reports down more than 10 minutes."
           summary: Wiresteward node exporter job down
+      - alert: WirestewardSystemdServiceDown
+        expr: node_systemd_units{state="failed", instance=~"^\\d\\.private-wiresteward.+$"} != 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          description: "{{ $labels.instance }} reports systemd services down more than 10 minutes."
+          summary: Wiresteward node has failed systemd services
   - name: semaphore
     rules:
       - alert: SemaphorePolicyCalicoClientErrors
