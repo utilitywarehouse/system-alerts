@@ -586,7 +586,7 @@ groups:
   - name: terraform-applier
     rules:
       - alert: TerraformApplierErrors
-        expr: terraform_applier_module_apply_success{kubernetes_namespace=~"kube-system|sys-.+"} == 0
+        expr: terraform_applier_module_last_run_success{kubernetes_namespace=~"kube-system|sys-.+"} == 0
         for: 1h10m
         labels:
           team: infra
@@ -595,5 +595,5 @@ groups:
           description: |
             Some resources may not have been applied.
 
-            If the state is locked you can remove the lock with the following command:
+            If module is using kube backend and the state is locked you can remove the lock with the following command:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op": "remove", "path": "/spec/holderIdentity"}]'`
