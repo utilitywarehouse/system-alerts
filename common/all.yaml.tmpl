@@ -67,16 +67,6 @@ groups:
         annotations:
           description: "{{ $labels.node }} is reporting that it is out of disk space."
           summary: node {{ $labels.node }} has no disk space
-      - alert: NodeMemoryUtilisationHigh
-        expr: 100 - (sum(node_memory_MemAvailable_bytes * on (instance) group_right(role) machine_role{role="worker"}) / sum(node_memory_MemTotal_bytes * on (instance) group_right(role) machine_role{role="worker"}) * 100) > 70
-        for: 24h
-        labels:
-          team: infra
-        annotations:
-          summary: Memory utilisation >70%
-          value: "{{ $value }}%"
-          action: "Please inspect the current load on the worker nodes"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9Hx0xRsik/kubernetes-nodes"
 #      - alert: KubernetesHighNodeMemory
 #        expr: ((sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) - ((sum by (instance, kubernetes_cluster) (node_memory_MemAvailable_bytes{job="node-exporter"})))) / sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) * 100 ) > 95
 #        for: 5m
