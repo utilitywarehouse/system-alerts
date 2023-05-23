@@ -6,13 +6,13 @@ groups:
     rules:
       - alert: KubeletCadvisorNotResponding
         expr: up{job="kubernetes-nodes"} != 1
-        for: 10m
+        for: 15m
         labels:
           team: infra
         annotations:
           description:
             "{{ $labels.instance }} ({{ $labels.role }}) has been down for
-            more than 10 minutes."
+            more than 15 minutes."
           summary: Kubernetes node is down
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
       - alert: KubernetesApiDown
@@ -509,16 +509,16 @@ groups:
           description: GlobalNetworkSets and cross cluster policies may be out of sync due to calico client request failures.
       # According to https://www.wireguard.com/protocol/ handshakes may occur based on `REKEY_AFTER_TIME` and `REJECT_AFTER_TIME` values.
       # Checking on the defaults: https://github.com/WireGuard/wireguard-monolithic-historical/blob/master/src/messages.h seems like
-      # the worst case scenario is 5mins between 2 handshakes. Lets allow double that and alert if we see that handshaking between peers
-      # takes more than 10 minutes. Also, allowing a 5 minute time window before firing to cover for the satrup delay, where the first peer
+      # the worst case scenario is 5mins between 2 handshakes. Lets triple that and alert if we see that handshaking between peers
+      # takes more than 15 minutes. Also, allowing a 5 minute time window before firing to cover for the satrup delay, where the first peer
       # handshake hasn't happened yet and semaphore_wg_peer_last_handshake_seconds is 0.
       - alert: SemaphoreWGPeerLastHandshakeTooFar
-        expr: time() - semaphore_wg_peer_last_handshake_seconds > 600
+        expr: time() - semaphore_wg_peer_last_handshake_seconds > 900
         for: 5m
         labels:
           team: infra
         annotations:
-          summary: "wg latest handshake with peer on {{ $labels.device }} device happened more than 10 minutes ago"
+          summary: "wg latest handshake with peer on {{ $labels.device }} device happened more than 15 minutes ago"
           description: "Instance: {{ $labels.instance }} wg latest handshake with peer {{ $labels.public_key }} on {{ $labels.device }} device happened more than 10 minutes ago."
       - alert: SemaphoreWireguardFailedToSyncPeers
         expr: increase(semaphore_wg_sync_peers_total{success="0"}[5m]) > 0
