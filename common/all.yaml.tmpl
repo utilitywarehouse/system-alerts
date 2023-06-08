@@ -490,13 +490,13 @@ groups:
           description: "{{ $labels.instance }} reports down more than 10 minutes."
           summary: Wiresteward node exporter job down
       - alert: WirestewardSystemdServiceDown
-        expr: node_systemd_units{state="failed", instance=~"^\\d\\.private-wiresteward.+$"} != 0
+        expr: node_systemd_units{state="failed", name=~"s3fs.service|wiresteward.service", instance=~"^\\d\\.private-wiresteward.+$"} != 0
         for: 10m
         labels:
           team: infra
         annotations:
           description: "{{ $labels.instance }} reports systemd services down more than 10 minutes."
-          summary: Wiresteward node has failed systemd services
+          summary: Wiresteward node has failed important systemd services
   - name: semaphore
     rules:
       - alert: SemaphorePolicyCalicoClientErrors
