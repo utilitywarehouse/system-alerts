@@ -563,7 +563,7 @@ groups:
           summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
           description: |
             Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       - alert: SemaphoreXDSRequeued
         expr: semaphore_xds_queue_requeued_items > 0
         for: 10m
@@ -583,7 +583,7 @@ groups:
         annotations:
           summary: '{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes'
           description: Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
   - name: terraform-applier
     rules:
       - alert: TerraformApplierErrors
