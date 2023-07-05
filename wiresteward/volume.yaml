@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-wiresteward
+              mountPath: /var/thanos/rule-templates/wiresteward
+      volumes:
+        - name: rule-templates-wiresteward
+          configMap:
+            name: alert-templates-wiresteward
