@@ -180,6 +180,26 @@ groups:
           impact: "APIServer will not be able to talk to k8s-sidecar-injector and applications will not have sidecars injected"
           action: "Short term: restart k8s-sidecar-injector Deployment. Long term: Make sure k8s-sidecar-injector reloads certificate/key when they change on disk"
           dashboard: "https://thanos-query-sys-prom.$ENVIRONMENT.$PROVIDER.uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
+      - alert: AvailabilityZoneRunningOutOfMemory
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.85
+        for: 6h
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of memory for pods"
+          impact: "Nodes are about to get into 'MemoryPressure' state and start to evict pods."
+          action: "Increase the number of nodes in the cluster."
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
+      - alert: AvailabilityZoneRunningOutOfAllocatableMemory
+        expr: avg(kube:node:resource:requests{resource="memory"}/on(resource,node) avg(kube_node_status_allocatable{resource="memory"}) by (node,resource) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.9
+        for: 6h
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of allocatable memory"
+          impact: "Pods may not find room to get scheduled."
+          action: "Review workloads' resource reservations and adjust them."
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization AND https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/SAY0wIcik/kubernetes-resource-provisioning"
   - name: kyverno
     rules:
       - alert: KyvernoBackgroundCheckRuleFailure
