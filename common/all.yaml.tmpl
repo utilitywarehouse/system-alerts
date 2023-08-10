@@ -181,7 +181,7 @@ groups:
           action: "Short term: restart k8s-sidecar-injector Deployment. Long term: Make sure k8s-sidecar-injector reloads certificate/key when they change on disk"
           dashboard: "https://thanos-query-sys-prom.$ENVIRONMENT.$PROVIDER.uw.systems/graph?g0.expr=(probe_ssl_earliest_cert_expiry%7Bjob%3D%22k8s-sidecar-injector-tls-probe%22%7D%20-%20time())%20%2F%2060%20%2F%2060%20%2F%2024&g0.tab=0&g0.stacked=0&g0.range_input=1d&g0.max_source_resolution=0s&g0.deduplicate=1&g0.partial_response=0&g0.store_matches=%5B%5D"
       - alert: AvailabilityZoneRunningOutOfMemory
-        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.85
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.90
         for: 6h
         labels:
           team: infra
