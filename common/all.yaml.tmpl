@@ -218,7 +218,7 @@ groups:
   - name: thanos
     rules:
       - alert: ThanosCompactHalted
-        expr: thanos_compactor_halted{app="thanos-compact",kubernetes_namespace=~"sys-.*"} == 1
+        expr: thanos_compact_halted{app="thanos-compact",kubernetes_namespace=~"sys-.*"} == 1
         labels:
           team: infra
         annotations:
