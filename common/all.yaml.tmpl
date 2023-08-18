@@ -1,6 +1,11 @@
 # PROMETHEUS RULES
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
+external_labels:
+  cloud_provider: $PROVIDER
+  uw_environment: $ENVIRONMENT
+  kubernetes_cluster: $ENVIRONMENT-$PROVIDER
+
 groups:
   - name: infra
     rules:
