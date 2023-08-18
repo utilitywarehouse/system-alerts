@@ -93,7 +93,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.daemonset }} daemonset in {{ $labels.namespace }} namespace has missing replicas for 15m"
+          summary: "{{ $labels.daemonset }} daemonset in {{ $labels.kubernetes_namespace }} namespace has missing replicas for 15m"
       # We need ~40mins to roll calico, so let's have a special alert for that.
       - alert: CalicoDaemonsetMissingReplicas
         expr: kube_daemonset_status_number_ready{daemonset="calico-node"} != kube_daemonset_status_desired_number_scheduled{daemonset="calico-node"}
@@ -101,21 +101,21 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "calico-node daemonset in {{ $labels.namespace }} namespace has missing replicas for 40m"
+          summary: "calico-node daemonset in {{ $labels.kubernetes_namespace }} namespace has missing replicas for 40m"
       - alert: SystemDeploymentMissingReplicas
         expr: kube_deployment_status_replicas_available{namespace=~"kube-system|sys-.*"} != kube_deployment_status_replicas{namespace=~"kube-system|sys-.*"}
         for: 15m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.deployment }} deployment in {{ $labels.namespace }} namespace has missing replicas for 15m"
+          summary: "{{ $labels.deployment }} deployment in {{ $labels.kubernetes_namespace }} namespace has missing replicas for 15m"
       - alert: SystemStatefulsetMissingReplicas
         expr: kube_statefulset_status_replicas_ready{namespace=~"kube-system|sys-.*"} != kube_statefulset_status_replicas{namespace=~"kube-system|sys-.*"}
         for: 15m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.statefulset }} statefulset in {{ $labels.namespace }} namespace has missing replicas for 15m"
+          summary: "{{ $labels.statefulset }} statefulset in {{ $labels.kubernetes_namespace }} namespace has missing replicas for 15m"
       # exclude "forwarder" Pods temporarily. They are memory hungry and we
       # need to limit them, so they do end up triggering often. Pending being
       # replaced by another agent
@@ -124,17 +124,17 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has OOMed in last 15 minutes."
+          summary: "Pod {{ $labels.kubernetes_namespace }}/{{ $labels.pod }} has OOMed in last 15 minutes."
           impact: "{{$labels.pod}} service might not be working as expected."
           action: "Investigate memory consumption and adjust pods resources."
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.kubernetes_namespace }}"
       - alert: SystemPodRestartingOften
         expr: increase(kube_pod_container_status_restarts_total{namespace=~"kube-system|sys-.*"}[10m]) > 3
         labels:
           team: infra
         annotations:
-          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted more than 3 times in the last 10m"
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          summary: "Pod {{ $labels.kubernetes_namespace }}/{{ $labels.pod }} has restarted more than 3 times in the last 10m"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
       - alert: PodContainerCpuThrottled
         expr: sum(increase(container_cpu_cfs_throttled_periods_total{namespace=~"kube-system|sys-.*"}[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total{namespace=~"kube-system|sys-.*"}[5m])) by (container, pod, namespace) > 0.95
@@ -142,10 +142,10 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled."
-          impact: "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
+          summary: "{{ $labels.kubernetes_namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled."
+          impact: "{{ $labels.kubernetes_namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
           action: "Investigate CPU consumption and adjust pods resources if needed."
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.kubernetes_namespace }}"
       - alert: ReadOnlyRootFilesystem
         expr: ro_rootfs != 0
         for: 5m
@@ -166,10 +166,10 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Volume {{ $labels.namespace }}/{{ $labels.persistentvolumeclaim }} has less than 10% available capacity"
+          summary: "Volume {{ $labels.kubernetes_namespace }}/{{ $labels.persistentvolumeclaim }} has less than 10% available capacity"
           impact: "Exhausting available disk space will most likely result in service disruption"
           action: "Investigate disk usage and adjust volume size if necessary."
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.kubernetes_namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
       - alert: CertExpireK8SSidecarInjector
         expr: (probe_ssl_earliest_cert_expiry{job="k8s-sidecar-injector-tls-probe"} - time()) / 60 / 60 / 24 < 7 # Less then a week
         for: 5m
@@ -224,7 +224,7 @@ groups:
         annotations:
           summary: Thanos compaction has failed to run and now is halted
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.${ENVIRONMENT}.${PROVIDER}.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bkubernetes_cluster%3D%5C%22${ENVIRONMENT}-${PROVIDER}%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20app%3D%5C%22{{ $labels.app }}%5C%22%7D%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       - alert: ThanosCompactCompactionsFailed
         expr: rate(prometheus_tsdb_compactions_failed_total{app="thanos-compact",kubernetes_namespace=~"sys-.*"}[5m]) > 0
         labels:
@@ -232,7 +232,7 @@ groups:
         annotations:
           summary: Thanos Compact is failing compaction
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       - alert: ThanosSidecarPrometheusDown
         expr: thanos_sidecar_prometheus_up{name="prometheus",kubernetes_namespace=~"sys-.*"} == 0
         for: 10m
@@ -242,7 +242,7 @@ groups:
           summary: Thanos Sidecar cannot connect to Prometheus
           impact: Prometheus configuration is not being refreshed
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/IOteEKHik/thanos-sidecar?refresh=30s&orgId=1&var-interval=1m&var-labelvalue=prometheus&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=name
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       - alert: ThanosRuleBadConfig
         expr: min(thanos_rule_config_last_reload_successful{app="thanos-rule",kubernetes_namespace=~"sys-.*"}) == 0
         for: 10m
@@ -253,7 +253,7 @@ groups:
           impact: On Thanos Rule restart alerts wont be loaded.
           action: Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
   - name: external-dns
     rules:
       - alert: ExternalDnsRegistryErrors
@@ -362,7 +362,7 @@ groups:
         annotations:
           summary: "Etcd backup jobs have not completed in the last 30h"
           action: "Check cronjob status and job logs "
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_container%3D%5C%22{{ $labels.container }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
   - name: tls-probe-traefik
     rules:
       - alert: TLSProbeTargetDown
@@ -496,7 +496,7 @@ groups:
             The pod is annotated with `{{ $labels.key }}={{ $labels.value }}` but does not have a
             container matching the name `vault-credentials-agent.*`. This indicates an issue with
             the sidecar injection. Check the `kube-system/k8s-sidecar-injector` deployment for problems.
-          summary: "Vault sidecar is missing from {{ $labels.namespace }}/{{ $labels.pod }}"
+          summary: "Vault sidecar is missing from {{ $labels.kubernetes_namespace }}/{{ $labels.pod }}"
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
   - name: semaphore
     rules:
@@ -565,7 +565,7 @@ groups:
           summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
           description: |
             Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
       - alert: SemaphoreXDSRequeued
         expr: semaphore_xds_queue_requeued_items > 0
         for: 10m
@@ -585,7 +585,7 @@ groups:
         annotations:
           summary: '{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes'
           description: Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kube_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
+          logs: "<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Borigin%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.kubernetes_namespace }}%5C%22,%20kube_pod%3D%5C%22{{ $labels.kubernetes_pod_name }}%5C%22%7D%20%7C%20logfmt%20%7C%20line_format%20%5C%22%7B%7B.log%7D%7D%5C%22%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
   - name: terraform-applier
     rules:
       - alert: TerraformApplierErrors
@@ -594,13 +594,13 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
+          summary: "Terraform module {{ $labels.module }} in {{ $labels.kubernetes_namespace }} encountered errors during last terraform run"
           description: |
             Some resources may not have been applied.
             to check status run following command:
-            `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} get module {{ $labels.module }}`
+            `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.kubernetes_namespace}} get module {{ $labels.module }}`
             or visit https://terraform-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
 
 
             If module is using kube backend and the state is locked you can remove the lock with the following command:
-            `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op": "remove", "path": "/spec/holderIdentity"}]'`
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op": "remove", "path": "/spec/holderIdentity"}]'`
