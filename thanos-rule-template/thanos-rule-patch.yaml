@@ -18,6 +18,7 @@ spec:
               for file in $(find /var/thanos/rule-templates/ -type f); do
                 # If the file has a .tmpl or .tpl extension - remove it
                 [ "$f" = "${f%.tmpl}" -o "$f" = "${f%.tpl}" ] && f="${f%.tmpl}" && f="${f%.tpl}"
+                echo $f
                 envsubst '${ENVIRONMENT},${PROVIDER}' < $file > /var/thanos/rules/$(basename $f);
               done;
           volumeMounts:
