@@ -16,9 +16,10 @@ spec:
             - |
               apk add --no-cache gettext;
               for file in $(find /var/thanos/rule-templates/ -type f); do
+                f=$(basename $file);
                 # If the file has a .tmpl or .tpl extension - remove it
-                [ "$f" = "${f%.tmpl}" -o "$f" = "${f%.tpl}" ] && f="${f%.tmpl}" && f="${f%.tpl}"
-                envsubst '${ENVIRONMENT},${PROVIDER}' < $file > /var/thanos/rules/$(basename $f);
+                f=${f%".tmpl"} && f=${f%".tpl"}
+                envsubst '${ENVIRONMENT},${PROVIDER}' < $file > /var/thanos/rules/$f;
               done;
           volumeMounts:
             - name: rules-rendered
