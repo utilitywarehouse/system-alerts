@@ -7,8 +7,6 @@ groups:
       - alert: KubeApplierErrors
         expr: kube_applier_last_run_success{namespace=~"$NS"} != 1
         for: 1h10m
-        labels:
-          team: infra
         annotations:
           summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
           impact: Some manifest won't be automatically deployed.
