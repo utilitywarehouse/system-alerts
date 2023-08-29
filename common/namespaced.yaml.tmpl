@@ -14,9 +14,16 @@ groups:
           link: https://kube-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
       - alert: ArgoCDApplicationNotSynced
         expr: argocd_app_info{namespace=~"$NS",sync_status!="Synced"} == 1
-        for: 1h
+        for: 24h
         annotations:
-          summary: "ArgoCD application {{$labels.name}} is not synced for 1h"
+          summary: "ArgoCD application {{$labels.name}} is not synced for last 24h"
+          impact: "Some manifests won't be automatically deployed."
+          action: "Check the web UI / logs for errors."
+          link: https://argocd-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.module}}
+      - alert: ArgoCDApplicationSyncFailure
+        expr: increase(argocd_app_sync_total{namespace=~"$NS",phase=~"Error|Failed"}[1h]) > 0
+        annotations:
+          summary: "ArgoCD application {{$labels.name}} Sync failed"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.module}}
