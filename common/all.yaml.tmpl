@@ -87,35 +87,6 @@ groups:
 #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage higher than 95%"
 #          summary: Kubernetes node high cpu
 #          value: "{{ $value }}"
-      - alert: SystemDaemonsetMissingReplicas
-        expr: kube_daemonset_status_number_ready{namespace=~"kube-system|sys-.*", daemonset!="calico-node"} != kube_daemonset_status_desired_number_scheduled{namespace=~"kube-system|sys-.*", daemonset!="calico-node"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.daemonset }} daemonset in {{ $labels.namespace }} namespace has missing replicas for 15m"
-      # We need ~40mins to roll calico, so let's have a special alert for that.
-      - alert: CalicoDaemonsetMissingReplicas
-        expr: kube_daemonset_status_number_ready{daemonset="calico-node"} != kube_daemonset_status_desired_number_scheduled{daemonset="calico-node"}
-        for: 40m
-        labels:
-          team: infra
-        annotations:
-          summary: "calico-node daemonset in {{ $labels.namespace }} namespace has missing replicas for 40m"
-      - alert: SystemDeploymentMissingReplicas
-        expr: kube_deployment_status_replicas_available{namespace=~"kube-system|sys-.*"} != kube_deployment_status_replicas{namespace=~"kube-system|sys-.*"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.deployment }} deployment in {{ $labels.namespace }} namespace has missing replicas for 15m"
-      - alert: SystemStatefulsetMissingReplicas
-        expr: kube_statefulset_status_replicas_ready{namespace=~"kube-system|sys-.*"} != kube_statefulset_status_replicas{namespace=~"kube-system|sys-.*"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.statefulset }} statefulset in {{ $labels.namespace }} namespace has missing replicas for 15m"
       # exclude "forwarder" Pods temporarily. They are memory hungry and we
       # need to limit them, so they do end up triggering often. Pending being
       # replaced by another agent
@@ -127,24 +98,6 @@ groups:
           summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has OOMed in last 15 minutes."
           impact: "{{$labels.pod}} service might not be working as expected."
           action: "Investigate memory consumption and adjust pods resources."
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
-      - alert: SystemPodRestartingOften
-        expr: increase(kube_pod_container_status_restarts_total{namespace=~"kube-system|sys-.*"}[10m]) > 3
-        labels:
-          team: infra
-        annotations:
-          summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has restarted more than 3 times in the last 10m"
-          logs: "<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22:%22P8E80F9AEF21F6940%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bkubernetes_cluster%3D%5C%22${ENVIRONMENT}-${PROVIDER}%5C%22,%20kubernetes_namespace%3D%5C%22{{ $labels.namespace }}%5C%22,%20kubernetes_container%3D%5C%22{{ $labels.container }}%5C%22%7D%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22P8E80F9AEF21F6940%22%7D,%22editorMode%22:%22code%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D|Logs :scroll:>"
-      # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
-      - alert: PodContainerCpuThrottled
-        expr: sum(increase(container_cpu_cfs_throttled_periods_total{namespace=~"kube-system|sys-.*"}[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total{namespace=~"kube-system|sys-.*"}[5m])) by (container, pod, namespace) > 0.95
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.namespace }}/{{ $labels.pod }}/{{ $labels.container }} is being CPU throttled."
-          impact: "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
-          action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
       - alert: ReadOnlyRootFilesystem
         expr: ro_rootfs != 0
