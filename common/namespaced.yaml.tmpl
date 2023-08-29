@@ -2,6 +2,26 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
+  - name: NamespaceSyncIssues
+    rules:
+      - alert: KubeApplierErrors
+        expr: kube_applier_last_run_success{namespace=~"$NS"} != 1
+        for: 1h10m
+        labels:
+          team: infra
+        annotations:
+          summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
+          impact: Some manifest won't be automatically deployed.
+          action: "Check the web UI / logs for errors."
+          link: https://kube-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
+      - alert: ArgoCDApplicationNotSynced
+        expr: argocd_app_info{namespace=~"$NS",sync_status!="Synced"} == 1
+        for: 1h
+        annotations:
+          summary: "ArgoCD application {{$labels.name}} is not synced for 1h"
+          impact: "Some manifests won't be automatically deployed."
+          action: "Check the web UI / logs for errors."
+          link: https://argocd-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.module}}
   - name: WorkloadMissingReplicas
     rules:
       - alert: DeploymentMissingReplicas
