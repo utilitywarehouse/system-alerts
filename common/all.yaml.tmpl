@@ -15,6 +15,15 @@ groups:
             more than 15 minutes."
           summary: Kubernetes node is down
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
+      - alert: KubernetesCACertExpiringSoon
+        expr: ca_cert_expiry_timestamp{app="kube-ca-cert-server"} - time() < 86400 * 2
+        labels:
+          team: infra
+          priority: P1
+        annotations:
+          summary: "Kubernetes CA Certificate {{$labels.kubernetes_cluster}} is expiring in < 2 days"
+          impact: "{{$labels.kubernetes_cluster}} will have TLS errors if not renewed."
+          action: "Renew certificate for {{$labels.kubernetes_cluster}}"
       - alert: KubernetesApiDown
         expr: up{service="kubernetes"} != 1
         for: 1m
