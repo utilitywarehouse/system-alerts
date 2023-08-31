@@ -85,3 +85,8 @@ groups:
         annotations:
           summary: "Log aggregator buffer is over 50%"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/vcsXDH2mz/fluentd-aggregators?orgId=1&refresh=5m"
+      - alert: PromtailDroppingSystemLogs
+        expr: rate(logentry_dropped_lines_by_label_total{label_name="limit_key", label_value=~"kube-system.*|sys-.*"}[5m]) > 10
+        for: 10m
+        labels:
+          team: infra
