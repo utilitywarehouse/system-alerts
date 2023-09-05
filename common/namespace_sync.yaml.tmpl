@@ -1,0 +1,35 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: NamespaceSync
+    rules:
+      - alert: ArgoCDApplicationNotSynced
+        expr: argocd_app_info{sync_status!="Synced"} == 1
+        for: 24h
+        labels:
+          filter: namespace
+        annotations:
+          summary: "ArgoCD application {{$labels.name}} is not synced for last 24h"
+          impact: "Some manifests won't be automatically deployed."
+          action: "Check the web UI / logs for errors."
+          link: https://argocd-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.module}}
+      - alert: ArgoCDApplicationSyncFailure
+        expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
+        labels:
+          filter: namespace
+        annotations:
+          summary: "ArgoCD application {{$labels.name}} Sync failed"
+          impact: "Some manifests won't be automatically deployed."
+          action: "Check the web UI / logs for errors."
+          link: https://argocd-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.module}}
+      - alert: KubeApplierErrors
+        expr: kube_applier_last_run_success != 1
+        for: 1h10m
+        labels:
+          filter: namespace
+        annotations:
+          summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
+          impact: Some manifest won't be automatically deployed.
+          action: "Check the web UI / logs for errors."
+          link: https://kube-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
