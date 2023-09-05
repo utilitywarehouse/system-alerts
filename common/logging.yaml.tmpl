@@ -90,3 +90,5 @@ groups:
         for: 10m
         labels:
           team: infra
+        annotations:
+          summary: "{{ $labels.label_value }} is being noisy and dropping logs"
