@@ -5,7 +5,12 @@ configMapGenerator:
   - files:
       - all.yaml.tmpl=all.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
-      - by_namespace.yaml.tmpl
+      - container.yaml.tmpl
+      - missing_replicas.yaml.tmpl
+      - namespace_sync.yaml.tmpl
+      - storage.yaml.tmpl
+      - terraform_sync.yaml.tmpl
+      - vault.yaml.tmpl
     name: alert-templates-common
 
 patches:
