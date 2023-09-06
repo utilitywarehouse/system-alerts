@@ -2,13 +2,13 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
-  - name: terraform-applier
+  - name: TerraformSync
     rules:
       - alert: TerraformApplierErrors
         expr: terraform_applier_module_last_run_success == 0
         for: 1h10m
         labels:
-          filter: namespace
+          group: terraform_sync
         annotations:
           summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
           description: |

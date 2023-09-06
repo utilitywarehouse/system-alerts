@@ -8,7 +8,7 @@ groups:
         expr: argocd_app_info{sync_status!="Synced"} == 1
         for: 24h
         labels:
-          filter: namespace
+          group: namespace_sync
         annotations:
           summary: "ArgoCD application {{$labels.name}} is not synced for last 24h"
           impact: "Some manifests won't be automatically deployed."
@@ -17,7 +17,7 @@ groups:
       - alert: ArgoCDApplicationSyncFailure
         expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
         labels:
-          filter: namespace
+          group: namespace_sync
         annotations:
           summary: "ArgoCD application {{$labels.name}} Sync failed"
           impact: "Some manifests won't be automatically deployed."
@@ -27,7 +27,7 @@ groups:
         expr: kube_applier_last_run_success != 1
         for: 1h10m
         labels:
-          filter: namespace
+          group: namespace_sync
         annotations:
           summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
           impact: Some manifest won't be automatically deployed.

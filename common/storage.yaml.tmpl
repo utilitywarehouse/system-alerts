@@ -8,7 +8,7 @@ groups:
         expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 72 * 3600) < 0 and kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.2
         for: 5m
         labels:
-          filter: namespace
+          group: storage
         annotations:
           summary: "Volume {{$labels.namespace}}/{{$labels.persistentvolumeclaim}} will fill up in 72h"
           impact: "Exhausting available disk space will most likely result in service disruption"

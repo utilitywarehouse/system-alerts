@@ -7,7 +7,7 @@ groups:
       - alert: ContainerRestartingOften
         expr: increase(kube_pod_container_status_restarts_total[10m]) > 3
         labels:
-          filter: namespace
+          group: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 10m"
           impact: "Container may be crashlooping and not working as expected"
@@ -19,7 +19,7 @@ groups:
         expr: sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace) > 0.95
         for: 15m
         labels:
-          filter: namespace
+          group: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} is being CPU throttled."
           impact: "Container might take longer than normal to respond to requests."

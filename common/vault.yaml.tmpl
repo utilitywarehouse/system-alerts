@@ -9,7 +9,7 @@ groups:
         expr: time() - vkcc_sidecar_expiry_timestamp_seconds > 0
         for: 10m
         labels:
-          filter: kubernetes_namespace
+          group: vault_clients
         annotations:
           description: |
             The credentials served by the vault credentials agent sidecar have expired and have not
@@ -20,7 +20,7 @@ groups:
         expr: up{job="vault-credentials-agents"} == 0
         for: 10m
         labels:
-          filter: kubernetes_namespace
+          group: vault_clients
         annotations:
           description: |
             The vault credentials agent sidecar is down. This may cause issues for the other containers
@@ -31,7 +31,7 @@ groups:
         expr: (kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) kube_pod_status_scheduled{condition="true"} == 1) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}
         for: 10m
         labels:
-          filter: namespace
+          group: vault_clients
         annotations:
           description: |
             The pod is annotated with `{{ $labels.key }}={{ $labels.value }}` but does not have a
