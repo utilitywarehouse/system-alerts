@@ -1,0 +1,22 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: TerraformSync
+    rules:
+      - alert: TerraformApplierErrors
+        expr: terraform_applier_module_last_run_success == 0
+        for: 1h10m
+        labels:
+          group: terraform_sync
+        annotations:
+          summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
+          description: |
+            Some resources may not have been applied.
+            to check status run following command:
+            `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} get module {{ $labels.module }}`
+            or visit https://terraform-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
+
+
+            If module is using kube backend and the state is locked you can remove the lock with the following command:
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op":"remove","path":"/spec/holderIdentity"}]'`
