@@ -13,7 +13,7 @@ groups:
           summary: "ArgoCD application {{$labels.name}} is not synced for last 24h"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
-          link: https://argocd-system.{{$labels.kubernetes_cluster}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
+          link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationSyncFailure
         expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
         labels:
@@ -22,7 +22,7 @@ groups:
           summary: "ArgoCD application {{$labels.name}} Sync failed"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
-          link: https://argocd-system.{{$labels.kubernetes_cluster}}.{{$labels.cloud_provider}}.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
+          link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: KubeApplierErrors
         expr: kube_applier_last_run_success != 1
         for: 1h10m
@@ -32,4 +32,4 @@ groups:
           summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
           impact: Some manifest won't be automatically deployed.
           action: "Check the web UI / logs for errors."
-          link: https://kube-applier-system.{{$labels.kubernetes_cluster}}.{{$labels.cloud_provider}}.uw.systems/
+          link: https://kube-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/
