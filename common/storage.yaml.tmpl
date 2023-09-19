@@ -5,7 +5,7 @@ groups:
   - name: Storage
     rules:
       - alert: VolumeFillingUpin72h
-        expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 72 * 3600) < 0 and kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.2
+        expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 72 * 3600) < 0 and kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.5
         for: 2h
         labels:
           group: storage
@@ -15,7 +15,7 @@ groups:
           action: "Investigate disk usage and adjust volume size if necessary."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}"
       - alert: VolumeFillingUpin6h
-        expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 6 * 3600) < 0 and kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.2
+        expr: predict_linear(kubelet_volume_stats_available_bytes[1h], 6 * 3600) < 0 and kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.5
         for: 30m
         labels:
           group: storage
