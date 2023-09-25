@@ -50,9 +50,8 @@ groups:
           summary: Metrics from kube-state-metrics are absent
       - alert: NodeNotReady
         expr:
-          count(kube_node_info) - count(kube_node_status_condition{condition="Ready", status="true"})
-          != 0
-        for: 5m
+          count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
+        for: 15m
         labels:
           team: infra
         annotations:
@@ -60,6 +59,11 @@ groups:
             One or more of the worker nodes in the cluster is marked as Not
             Ready.
           summary: Kubernetes node is Not Ready
+      - alert: NodeNotReadyAlertInhibitor
+        expr:
+          count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
+        labels:
+          team: infra
       - alert: NodeUnschedulable
         expr: count(kube_node_spec_unschedulable == 1) > 0
         for: 1h
