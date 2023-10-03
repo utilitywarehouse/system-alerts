@@ -19,9 +19,9 @@ groups:
           summary: Cumulus Promtail service is down
       - alert: CumulusDown
         expr: |
-          up{job="node-exporter", instance="cumulus-.*.:9100"} != 1
+          up{job="node-exporter", instance=~"cumulus-.*.:9100"} != 1
           or
-          absent(up{job="node-exporter", instance="cumulus-.*.:9100"})
+          absent(up{job="node-exporter", instance=~"cumulus-.*.:9100"})
         for: 10m
         labels:
           team: infra
