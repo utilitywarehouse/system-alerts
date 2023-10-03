@@ -17,7 +17,7 @@ PROM_VERSION="v2.28.1"
 
 function is_yaml() {
   local file=$1
-  if [[ "${file}" == *yaml || "${file}" == *yml ]]; then
+  if [[ "${file}" == *yaml || "${file}" == *yml || "${file}" == *yaml.tmpl || "${file}" == *yml.tmpl ]]; then
     return 0
   fi
 
