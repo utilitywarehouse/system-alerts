@@ -5,7 +5,10 @@ groups:
   - name: cumulus
     rules:
       - alert: CumulusPromtailNotResponding
-        expr: up{job="cumulus-promtail"} != 1
+        expr: |
+        up{job="cumulus-promtail"} != 1 \
+        or \
+        absent(up{job="cumulus-promtail"})
         for: 10m
         labels:
           team: infra
