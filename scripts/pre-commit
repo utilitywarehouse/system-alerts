@@ -15,10 +15,22 @@ fi
 
 PROM_VERSION="v2.28.1"
 
-function is_yaml() {
+function is_yaml_extension() {
   local file=$1
   if [[ "${file}" == *yaml || "${file}" == *yml || "${file}" == *yaml.tmpl || "${file}" == *yml.tmpl ]]; then
     return 0
+  fi
+
+  return 1
+}
+
+function is_valid_yaml() {
+  local file=$1
+  if is_yaml_extension "${file}"; then
+    if yq -v "${file}" ; then
+      return 0
+    fi
+    exit_code=1
   fi
 
   return 1
@@ -29,7 +41,7 @@ function check_alerts() {
   local files=$(${GIT_CMD})
   for f in ${files}
   do
-    if is_yaml "${f}"; then
+    if is_valid_yaml "${f}"; then
       if [[ $(head -1 "${f}") =~ "PROMETHEUS RULES" ]]; then
         docker run -i --entrypoint promtool -v $PWD/${f}:$PWD/${f} docker.io/prom/prometheus:${PROM_VERSION} check rules $PWD/${f} &> /dev/null
         if [ $? -ne 0 ]; then
