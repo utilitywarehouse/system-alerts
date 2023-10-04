@@ -20,5 +20,7 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get -y install git
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
       - name: Run pre-commit checks script
         run: make hooks-pre-commit-run
