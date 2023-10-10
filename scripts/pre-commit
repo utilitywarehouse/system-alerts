@@ -13,7 +13,7 @@ else
   GIT_CMD=${GIT_CMD}
 fi
 
-PROM_VERSION="v2.28.1"
+PROM_VERSION="v2.47.0"
 
 function is_yaml_extension() {
   local file=$1
