@@ -6,6 +6,7 @@ groups:
     rules:
       - alert: ContainerRestartingOften
         expr: increase(kube_pod_container_status_restarts_total[10m]) > 3
+        keep_firing_for: 10m
         labels:
           group: container
         annotations:
