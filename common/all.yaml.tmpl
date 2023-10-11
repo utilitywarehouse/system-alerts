@@ -160,13 +160,16 @@ groups:
           impact: "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
           action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
-      - alert: ReadOnlyRootFilesystem
-        expr: ro_rootfs != 0
+      # Non-kube targets have their own dedicated alerts
+      - alert: NodeExporterDown(kube)
+        expr: up{job="node-exporter", node!=""} == 0
         for: 5m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.instance }} instance has a read only root filesystem for 5m"
+          summary: "{{ $labels.node }} prometheus scrapes are failing on a discovered node"
+          impact: "Node may be misbehaving"
+          action: "Check if node has a read-only filesystem, which is a common cause for exporter failures (check events in `kubectl describe node`). Otherwise check node-exporter logs (daemonset running in sys-prom)"
       - alert: CfsslDown
         expr: probe_success{job="cfssl-probe"} == 0 or absent(probe_success{job="cfssl-probe"})
         for: 10m
