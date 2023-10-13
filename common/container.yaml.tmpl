@@ -27,7 +27,7 @@ groups:
           action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
       - alert: ContainerOOMing
-        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container) kube_pod_container_status_ready == 0
+        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) kube_pod_container_status_ready == 0
         for: 5m
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has been OOMKilled recently and it's not ready"
