@@ -160,13 +160,18 @@ groups:
           impact: "{{ $labels.namespace }}/{{ $labels.pod }} might take longer than normal to respond to requests."
           action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
-      - alert: ReadOnlyRootFilesystem
-        expr: ro_rootfs != 0
+      # Non-kube targets have their own dedicated alerts
+      - alert: NodeExporterDown(kube)
+        # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
+        expr: up{job="node-exporter", node!=""} * on (node) group_left(pod) kube_pod_info{created_by_name="node-exporter"} == 0
         for: 5m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.instance }} instance has a read only root filesystem for 5m"
+          summary: "{{ $labels.node }} prometheus scrapes are failing on a discovered node"
+          impact: "Node may be misbehaving"
+          action: "Check if node has a read-only filesystem, which is a common cause for exporter failures (check events in `kubectl describe node`). Otherwise check node-exporter logs (link below)"
+          logs: "https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22%3A%22loki%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bcloud_provider%3D%5C%22{{$labels.cloud_provider}}%5C%22%2Ckubernetes_pod_name%3D%5C%22{{$labels.pod}}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22loki%22%7D%2C%22editorMode%22%3A%22code%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D"
       - alert: CfsslDown
         expr: probe_success{job="cfssl-probe"} == 0 or absent(probe_success{job="cfssl-probe"})
         for: 10m
