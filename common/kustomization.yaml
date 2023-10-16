@@ -5,6 +5,7 @@ configMapGenerator:
   - files:
       - all.yaml.tmpl=all.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
+      - canary.yaml
       - container.yaml.tmpl
       - missing_replicas.yaml.tmpl
       - namespace_sync.yaml.tmpl

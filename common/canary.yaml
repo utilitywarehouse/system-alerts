@@ -1,0 +1,10 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  # Allows detecting if alerts are being loaded in thanos-rule
+  - name: canary
+    rules:
+      # The alert is dummy, will never trigger
+      - alert: DummyCanary
+        expr: vector(1) == 0
