@@ -10,7 +10,7 @@ groups:
         labels:
           group: container
         annotations:
-          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 10m"
+          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 10m TESTING"
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}"
