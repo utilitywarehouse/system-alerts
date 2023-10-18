@@ -29,6 +29,8 @@ groups:
       - alert: ContainerOOMing
         expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) kube_pod_container_status_ready == 0
         for: 5m
+        labels:
+          group: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has been OOMKilled recently and it's not ready"
           impact: "Container not ready, may affect service uptime"
