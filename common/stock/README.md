@@ -3,6 +3,9 @@ Common and useful alerts maintained by @system and readily available for teams
 to consume.
 
 ## Usage
+Stock alerts are already setup and "firing" for all teams, and they only need
+to be consumed by teams, if they choose to.
+
 To consume the stock alerts, add a new route on alertmanager filtering your
 namespaces and pointing to your receiver. The `matchers` clause follows the
 usual prometheus syntax.
