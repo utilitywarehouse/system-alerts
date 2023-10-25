@@ -3,7 +3,7 @@ Common and useful alerts maintained by @system and readily available for teams
 to consume.
 
 ## Usage
-To consume the stock alerts, add new routes on alertmanager filtering your
+To consume the stock alerts, add a new route on alertmanager filtering your
 namespaces and pointing to your receiver. The `matchers` clause follows the
 usual prometheus syntax.
 
@@ -14,9 +14,6 @@ route:
     - matchers: ['{namespace=~"myteam-.*"}']
       receiver: myteam-receiver
       group_by: ["alertname", "namespace", "deployment", "statefulset"]
-    - matchers: ['{kubernetes_namespace=~"myteam-.*"}']
-      receiver: myteam-receiver
-      group_by: ["alertname", "kubernetes_namespace"]
 ```
 
 If you want to opt out of some alerts, you can have a subroute matching what
@@ -33,9 +30,6 @@ route:
         # Example of ignoring some alerts by sending them to `deadletter`
         - matchers: ['{alertname="StatefulSetMissingReplicas",statefulset="kafka"}']
           receiver: deadletter
-    - matchers: ['{kubernetes_namespace=~"myteam-.*"}']
-      receiver: myteam-receiver
-      group_by: ["alertname", "kubernetes_namespace"]
 ```
 
 ## Note on `team` label and catching-non-stock alerts
@@ -48,7 +42,7 @@ Example of different routes for stock and team alerts(assuming team alerts use
 ```
 route:
   routes:
-    - matchers: ['{kubernetes_namespace=~"myteam-.*", team=""}']
+    - matchers: ['{namespace=~"myteam-.*", team=""}']
       receiver: myteam-receiver-for-stock-alerts
       ...
     - matchers: ['{team="myteam"}']
@@ -56,7 +50,10 @@ route:
       ...
 ```
 
-## Note on `namespace` vs `kubernetes_namespace` labels
+## Notes for @system
+
+### Note on `namespace` vs `kubernetes_namespace` labels
+There are two possible "namespace" labels in metrics
 * `namespace` is the namespace labeled by a metric inside it's exporter. It is
   relevant in metrics exposed by workloads that are aware of kubernetes
   namespace as a concept, like metrics coming from argocd or
@@ -65,7 +62,9 @@ route:
   This is relevant in metrics exposed by workloads that do not deal with
   kubernetes namespaces as a concept.
 
-## Note for @system team configuration
+Currently all the metrics used in the stock alerts rely only on `namespace` label, but this may change in the future. We could either add a second matcher or relabel `kubernetes_namespace` to `namespace` in all metrics where `namespace` is not set.
+
+### Note for @system team configuration
 There are metrics that have a @system `kubernetes_namespace` but a non-@system
 `namespace`, like an argocd metric that comes from a @system namespace but is
 talking about another team's namespace (`argocd_app_info{sync_status!="Synced",
