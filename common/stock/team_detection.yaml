@@ -2,4 +2,5 @@ groups:
   - name: team_detection
     rules:
       - record: uw_namespace_owner
-        expr: sum by (namespace, team) (label_replace(kube_namespace_labels, "team", "$1", "label_uw_systems_owner", "(system|partner)"))
+        expr: label_replace(kube_namespace_labels, "team", "$1", "label_uw_systems_owner", "(system|partner)")
+          #expr: sum by (namespace, team) (label_replace(kube_namespace_labels, "team", "$1", "label_uw_systems_owner", "(system|partner)"))
