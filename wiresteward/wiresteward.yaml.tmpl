@@ -5,7 +5,7 @@ groups:
   - name: wiresteward
     rules:
       - alert: WirestewardNodeDown
-        expr: up{job="node-exporter", instance=~"^\\d\\.private-wiresteward.+$"} != 1 or absent(up{job="node-exporter", instance=~"^\\d\\.private-wiresteward.+$"})
+        expr: up{job="node-exporter-static", instance=~"^\\d\\.private-wiresteward.+$"} != 1 or absent(up{job="node-exporter-static", instance=~"^\\d\\.private-wiresteward.+$"})
         for: 10m
         labels:
           team: infra

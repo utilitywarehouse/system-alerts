@@ -15,7 +15,7 @@ groups:
   - name: nat
     rules:
       - alert: NATNodeDown
-        expr: up{job="node-exporter", instance=~"nat.*"} != 1 or absent(up{job="node-exporter", instance=~"nat.*"})
+        expr: up{job="node-exporter-static", instance=~"nat.*"} != 1 or absent(up{job="node-exporter-static", instance=~"nat.*"})
         for: 10m
         labels:
           team: infra
@@ -41,7 +41,7 @@ groups:
   - name: matchbox
     rules:
       - alert: MatchboxNodeDown
-        expr: up{job="node-exporter", instance=~"matchbox.*"} != 1 or absent(up{job="node-exporter", instance=~"matchbox.*"})
+        expr: up{job="node-exporter-static", instance=~"matchbox.*"} != 1 or absent(up{job="node-exporter-static", instance=~"matchbox.*"})
         for: 15m
         labels:
           team: infra
