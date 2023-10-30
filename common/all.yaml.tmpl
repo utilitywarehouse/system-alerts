@@ -163,7 +163,7 @@ groups:
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
-        expr: up{job="node-exporter", node!=""} * on (node) group_left(pod) kube_pod_info{created_by_name="node-exporter"} == 0
+        expr: up{job="node-exporter-static", node!=""} * on (node) group_left(pod) kube_pod_info{created_by_name="node-exporter"} == 0
         for: 5m
         labels:
           team: infra
