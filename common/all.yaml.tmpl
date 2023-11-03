@@ -100,35 +100,6 @@ groups:
 #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage higher than 95%"
 #          summary: Kubernetes node high cpu
 #          value: "{{ $value }}"
-      - alert: SystemDaemonsetMissingReplicas
-        expr: kube_daemonset_status_number_ready{namespace=~"kube-system|sys-.*", daemonset!="calico-node"} != kube_daemonset_status_desired_number_scheduled{namespace=~"kube-system|sys-.*", daemonset!="calico-node"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.daemonset }} daemonset in {{ $labels.namespace }} namespace has missing replicas for 15m"
-      # We need ~40mins to roll calico, so let's have a special alert for that.
-      - alert: CalicoDaemonsetMissingReplicas
-        expr: kube_daemonset_status_number_ready{daemonset="calico-node"} != kube_daemonset_status_desired_number_scheduled{daemonset="calico-node"}
-        for: 40m
-        labels:
-          team: infra
-        annotations:
-          summary: "calico-node daemonset in {{ $labels.namespace }} namespace has missing replicas for 40m"
-      - alert: SystemDeploymentMissingReplicas
-        expr: kube_deployment_status_replicas_available{namespace=~"kube-system|sys-.*"} != kube_deployment_status_replicas{namespace=~"kube-system|sys-.*"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.deployment }} deployment in {{ $labels.namespace }} namespace has missing replicas for 15m"
-      - alert: SystemStatefulsetMissingReplicas
-        expr: kube_statefulset_status_replicas_ready{namespace=~"kube-system|sys-.*"} != kube_statefulset_status_replicas{namespace=~"kube-system|sys-.*"}
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.statefulset }} statefulset in {{ $labels.namespace }} namespace has missing replicas for 15m"
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
