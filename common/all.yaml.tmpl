@@ -423,40 +423,6 @@ groups:
         annotations:
           description: "{{ $labels.instance }} http probe job reports down more than 5 minutes."
           summary: Vault server http probe job down
-      - alert: VaultSidecarCredentialsExpired
-        expr: time() - vkcc_sidecar_expiry_timestamp_seconds{kubernetes_namespace=~"kube-system|sys-.*"} > 0
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          description: |
-            The credentials served by the vault credentials agent sidecar have expired and have not
-            been renewed. This may cause issues for the other containers in the pod.
-          summary: "The credentials for '{{ $labels.kubernetes_pod_name }}' have expired"
-          dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
-      - alert: VaultSidecarDown
-        expr: up{job="vault-credentials-agents",kubernetes_namespace=~"kube-system|sys-.*"} == 0
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          description: |
-            The vault credentials agent sidecar is down. This may cause issues for the other containers
-            in the pod.
-          summary: "The vault credentials agent for '{{ $labels.kubernetes_pod_name }}' is down"
-          dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
-      - alert: VaultSidecarMissing
-        expr: (kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) kube_pod_status_scheduled{condition="true"} == 1) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          description: |
-            The pod is annotated with `{{ $labels.key }}={{ $labels.value }}` but does not have a
-            container matching the name `vault-credentials-agent.*`. This indicates an issue with
-            the sidecar injection. Check the `kube-system/k8s-sidecar-injector` deployment for problems.
-          summary: "Vault sidecar is missing from {{ $labels.namespace }}/{{ $labels.pod }}"
-          dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
   - name: semaphore
     rules:
       - alert: SemaphorePolicyCalicoClientErrors
