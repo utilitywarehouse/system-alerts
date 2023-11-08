@@ -1,0 +1,229 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: TieredMissingReplicas
+    rules:
+      - alert: TierUnknownDeploymentMissingReplicas
+        expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier=""}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
+          impact: "[Unknown Tier] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier1DeploymentMissingReplicas
+        expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_1"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
+          impact: "[Tier 1] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier2DeploymentMissingReplicas
+        expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_2"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
+          impact: "[Tier 2] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier3DeploymentMissingReplicas
+        expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_3"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
+          impact: "[Tier 3] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier4DeploymentMissingReplicas
+        expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_4"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
+          impact: "[Tier 4] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+
+      - alert: TierUnknownStatefulsetMissingReplicas
+        expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier=""}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
+          impact: "[Tier Unknown] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier1StatefulsetMissingReplicas
+        expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_1"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
+          impact: "[Tier 1] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier2StatefulsetMissingReplicas
+        expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_2"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
+          impact: "[Tier 2] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier3StatefulsetMissingReplicas
+        expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_3"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
+          impact: "[Tier 3] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier4StatefulsetMissingReplicas
+        expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_4"}
+        keep_firing_for: 5m
+        for: 15m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
+          impact: "[Tier 4] Workload may be unavailable or have lost high availability"
+          action: "Check why some replicas are not healthy"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+
+      - alert: TierUnknownDeploymentMissingAllReplicas
+        expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0)  * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier=""}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
+          impact: "[Tier Unknown] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier1DeploymentMissingAllReplicas
+        expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0)  * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_1"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
+          impact: "[Tier 1] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier2DeploymentMissingAllReplicas
+        expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0)  * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_2"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
+          impact: "[Tier 2] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier3DeploymentMissingAllReplicas
+        expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0)  * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_3"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
+          impact: "[Tier Unknown] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+      - alert: Tier4DeploymentMissingAllReplicas
+        expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0)  * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_deployment_annotations{annotation_app_uw_systems_tier="tier_4"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
+          impact: "[Tier 4] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+
+      - alert: TierUnknownStatefulsetMissingAllReplicas
+        expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0)  * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier=""}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
+          impact: "[Tier Unknown] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier1StatefulsetMissingAllReplicas
+        expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0)  * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_1"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
+          impact: "[Tier 1] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier2StatefulsetMissingAllReplicas
+        expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0)  * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_2"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
+          impact: "[Tier 2] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier3StatefulsetMissingAllReplicas
+        expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0)  * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_3"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
+          impact: "[Tier 3] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+      - alert: Tier4StatefulsetMissingAllReplicas
+        expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0)  * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system) kube_statefulset_annotations{annotation_app_uw_systems_tier="tier_4"}
+        keep_firing_for: 2m
+        for: 5m
+        labels:
+          group: tiered_missing_replicas
+        annotations:
+          summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
+          impact: "[Tier 4] Workload is down"
+          action: "Check why all replicas are missing"
+          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
