@@ -10,16 +10,31 @@ groups:
         labels:
           group: namespace_sync
         annotations:
-          summary: "ArgoCD application {{$labels.name}} is not synced for last 24h"
+          summary: "Argo CD application {{$labels.name}} is not synced for last 24h"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
+          link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
+      - alert: ArgoCDApplicationAutoSyncDisabled
+        expr: argocd_app_info{autosync_enabled="false"} == 1
+        for: 24h
+        labels:
+          group: namespace_sync
+        annotations:
+          summary: "Auto Sync on Argo CD application {{$labels.name}} is disabled for last 24h"
+          impact: "New manifests won't be automatically deployed."
+          action: "Enable Auto Sync via UI or command"
+          description: |
+            Enable `auto sync with prune` with the following command: 
+            `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} patch --type='merge' applications.argoproj.io {{$labels.name}} -p "{\"spec\":{\"syncPolicy\":{\"automated\":{\"prune\":true,\"selfHeal\":false}}}}"`
+            Enable `auto sync without prune` with the following command: 
+            `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} patch --type='merge' applications.argoproj.io {{$labels.name}} -p "{\"spec\":{\"syncPolicy\":{\"automated\":{\"prune\":false,\"selfHeal\":false}}}}"`
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationSyncFailure
         expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
         labels:
           group: namespace_sync
         annotations:
-          summary: "ArgoCD application {{$labels.name}} Sync failed"
+          summary: "Argo CD application {{$labels.name}} Sync failed"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
