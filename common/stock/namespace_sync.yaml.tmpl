@@ -5,7 +5,7 @@ groups:
   - name: NamespaceSync
     rules:
       - alert: ArgoCDApplicationNotSynced
-        expr: argocd_app_info{sync_status!="Synced"} == 1
+        expr: argocd_app_info{autosync_enabled="true",sync_status!="Synced"} == 1
         for: 24h
         labels:
           group: namespace_sync
