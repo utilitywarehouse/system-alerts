@@ -16,17 +16,6 @@ groups:
             been renewed. This may cause issues for the other containers in the pod.
           summary: "The credentials for '{{ $labels.kubernetes_pod_name }}' have expired"
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
-      - alert: VaultSidecarDown
-        expr: up{job="vault-credentials-agents"} == 0
-        for: 10m
-        labels:
-          group: vault_clients
-        annotations:
-          description: |
-            The vault credentials agent sidecar is down. This may cause issues for the other containers
-            in the pod.
-          summary: "The vault credentials agent for '{{ $labels.kubernetes_pod_name }}' is down"
-          dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
       - alert: VaultSidecarMissing
         expr: (kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) kube_pod_status_scheduled{condition="true"} == 1) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}
         for: 10m
