@@ -6,7 +6,7 @@ groups:
     rules:
       - alert: DeploymentMissingReplicas
         expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations{}
-        keep_firing_for: 5m
+        keep_firing_for: 10m
         for: 15m
         labels:
           group: missing_replicas
@@ -17,7 +17,7 @@ groups:
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
       - alert: StatefulsetMissingReplicas
         expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations{}
-        keep_firing_for: 5m
+        keep_firing_for: 10m
         for: 15m
         labels:
           group: missing_replicas
@@ -29,7 +29,7 @@ groups:
       - alert: DaemonsetMissingReplicas
         # Alert if there are unhealthy replicas and the ds is not updating it's replicas
         expr: (kube_daemonset_status_number_ready != kube_daemonset_status_desired_number_scheduled) and changes(kube_daemonset_status_updated_number_scheduled[10m]) == 0
-        keep_firing_for: 2m
+        keep_firing_for: 10m
         for: 5m
         labels:
           group: missing_replicas
@@ -40,7 +40,7 @@ groups:
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}"
       - alert: DeploymentMissingAllReplicas
         expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations{}
-        keep_firing_for: 2m
+        keep_firing_for: 10m
         for: 5m
         labels:
           group: missing_replicas
@@ -51,7 +51,7 @@ groups:
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
       - alert: StatefulsetMissingAllReplicas
         expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations{}
-        keep_firing_for: 2m
+        keep_firing_for: 10m
         for: 5m
         labels:
           group: missing_replicas
@@ -62,7 +62,7 @@ groups:
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
       - alert: DaemonsetMissingAllReplicas
         expr: (kube_daemonset_status_number_ready == 0 and kube_daemonset_status_desired_number_scheduled != 0)
-        keep_firing_for: 2m
+        keep_firing_for: 10m
         for: 5m
         labels:
           group: missing_replicas
