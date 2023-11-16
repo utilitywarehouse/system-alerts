@@ -3,5 +3,6 @@ groups:
     rules:
       - record: uw_namespace_owner
         expr: label_replace(kube_namespace_labels{job="kube-state-metrics"}, "team", "$1", "label_uw_systems_owner", "(system|partner)")
+      # used as: `metric_with_namespace * on (namespace) group_left (team) uw_namespace_team
       - record: uw_namespace_team
         expr: sum by (namespace, team) (label_replace(kube_namespace_labels{job="kube-state-metrics"}, "team", "$1", "label_uw_systems_owner", "(system)"))
