@@ -18,7 +18,7 @@ groups:
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationAutoSyncDisabled
         expr: (argocd_app_info{autosync_enabled="false"} == 1) * on (namespace) group_left(team) uw_namespace_team
-          #for: 1h
+        for: 1h
         labels:
           alerttype: stock
           alertgroup: namespace_sync
