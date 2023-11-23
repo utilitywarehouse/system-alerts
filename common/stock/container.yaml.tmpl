@@ -9,7 +9,8 @@ groups:
       - alert: ContainerRestartingOften
         expr: increase(kube_pod_container_status_restarts_total[2h]) > 3
         labels:
-          group: container
+          alerttype: stock
+          alertgroup: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 2h"
           impact: "Container may be crashlooping and not working as expected"
@@ -21,7 +22,8 @@ groups:
         expr: sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace) > 0.95
         for: 15m
         labels:
-          group: container
+          alerttype: stock
+          alertgroup: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} is being CPU throttled."
           impact: "Container might take longer than normal to respond to requests."
@@ -31,7 +33,8 @@ groups:
         expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) kube_pod_container_status_ready == 0
         for: 5m
         labels:
-          group: container
+          alerttype: stock
+          alertgroup: container
         annotations:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has been OOMKilled recently and it's not ready"
           impact: "Container not ready, may affect service uptime"

@@ -8,7 +8,8 @@ groups:
         expr: terraform_applier_module_last_run_success == 0
         for: 1h10m
         labels:
-          group: terraform_sync
+          alerttype: stock
+          alertgroup: terraform_sync
         annotations:
           summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
           description: |

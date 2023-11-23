@@ -8,7 +8,8 @@ groups:
         expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations{}
         for: 15m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
           impact: "Workload may be unavailable or have lost high availability"
@@ -18,7 +19,8 @@ groups:
         expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations{}
         for: 15m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
           impact: "Workload may be unavailable or have lost high availability"
@@ -29,7 +31,8 @@ groups:
         expr: (kube_daemonset_status_number_ready != kube_daemonset_status_desired_number_scheduled) and changes(kube_daemonset_status_updated_number_scheduled[10m]) == 0
         for: 5m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Daemonset {{$labels.namespace}}/{{$labels.daemonset}} has missing replicas"
           impact: "Workload unavailable on some nodes"
@@ -39,7 +42,8 @@ groups:
         expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations{}
         for: 5m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
           impact: "Workload is down"
@@ -49,7 +53,8 @@ groups:
         expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations{}
         for: 5m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
           impact: "Workload is down"
@@ -59,7 +64,8 @@ groups:
         expr: (kube_daemonset_status_number_ready == 0 and kube_daemonset_status_desired_number_scheduled != 0)
         for: 5m
         labels:
-          group: missing_replicas
+          alerttype: stock
+          alertgroup: missing_replicas
         annotations:
           summary: "Daemonset {{$labels.namespace}}/{{$labels.daemonset}} has 0 healthy replicas."
           impact: "Workload is down"
