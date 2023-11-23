@@ -7,7 +7,16 @@ groups:
       # Set period to 2h to capture slow crashing containers like
       # thanos-compact that take a long time to start up
       - alert: ContainerRestartingOften
+<<<<<<< HEAD
         expr: increase(kube_pod_container_status_restarts_total[2h]) > 3
+=======
+        expr: |
+          (
+            increase(kube_pod_container_status_restarts_total[10m]) > 3
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team
+        keep_firing_for: 10m
+>>>>>>> f37f257 (Update container alerts with team detection)
         labels:
           alerttype: stock
           alertgroup: container
@@ -19,7 +28,20 @@ groups:
           logs: "https://grafana.$ENVIRONMENT.aws.uw.systems/explore?orgId=1&left=%7B%22datasource%22%3A%22P8E80F9AEF21F6940%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22expr%22%3A%22%7Bkubernetes_cluster%3D%5C%22$ENVIRONMENT-$PROVIDER%5C%22%2C+kubernetes_namespace%3D%5C%22{{ $labels.namespace }}%5C%22%2C+app_kubernetes_io_name%3D%5C%{{ $labels.label_app_kubernetes_io_name }}%5C%22%7D%22%2C%22queryType%22%3A%22range%22%2C%22datasource%22%3A%7B%22type%22%3A%22loki%22%2C%22uid%22%3A%22P8E80F9AEF21F6940%22%7D%2C%22editorMode%22%3A%22code%22%7D%5D%2C%22range%22%3A%7B%22from%22%3A%22now-1h%22%2C%22to%22%3A%22now%22%7D%7D"
       # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
       - alert: ContainerCpuThrottled
+<<<<<<< HEAD
         expr: sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace) > 0.95
+=======
+        # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
+        expr: |
+          (
+            (
+              sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace)
+              /
+              sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace)
+            ) > 0.95
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team
+>>>>>>> f37f257 (Update container alerts with team detection)
         for: 15m
         labels:
           alerttype: stock
@@ -30,7 +52,13 @@ groups:
           action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}"
       - alert: ContainerOOMing
-        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) kube_pod_container_status_ready == 0
+        expr: |
+          (
+            kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+            and on (container,pod) 
+            (kube_pod_container_status_ready == 0)
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 5m
         labels:
           alerttype: stock
