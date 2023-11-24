@@ -6,7 +6,7 @@ groups:
     # Recommendations from https://s3-us-west-2.amazonaws.com/hashicorp-education/whitepapers/Vault/Vault-Consul-Monitoring-Guide.pdf
     rules:
       - alert: VaultSidecarCredentialsExpired
-        expr: time() - vkcc_sidecar_expiry_timestamp_seconds > 0
+        expr: (time() - vkcc_sidecar_expiry_timestamp_seconds > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 10m
         labels:
           alerttype: stock
@@ -18,7 +18,7 @@ groups:
           summary: "The credentials for '{{ $labels.kubernetes_pod_name }}' have expired"
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
       - alert: VaultSidecarMissing
-        expr: (kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) kube_pod_status_scheduled{condition="true"} == 1) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}
+        expr: ((kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) (kube_pod_status_scheduled{condition="true"} == 1)) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 10m
         labels:
           alerttype: stock
