@@ -35,11 +35,9 @@ route:
 ```
 
 ### Note on alert grouping
-Stock alerts use the default grouping found at the top of the [alertmanager
-config](https://github.com/utilitywarehouse/kubernetes-manifests/blob/master/prod-aws/sys-mon/resources/alertmanager-config-template.yaml#L12)
-
-If your team alerts need different grouping, you can configure it by adding a
-subroute for your alerts with your custom grouping:
+If your team is using a custom grouping that is missing entries from the
+default grouping (set at the top of the [alertmanager
+config](https://github.com/utilitywarehouse/kubernetes-manifests/blob/master/prod-aws/sys-mon/resources/alertmanager-config-template.yaml#L12)), it is suggested to configure stock alerts to use the stock grouping:
 ```
 route:
   ...
@@ -48,8 +46,8 @@ route:
     - matchers: ['{team="myteam"}']
       receiver: myteam-receiver
       routes:
-        # Example of custom grouping for non-stock alerts
-        - matchers: ['{alerttype!="stock"}']
-          group_by: ["your", "custom", "grouping"]
+        # Example of specifying grouping for stock alerts, using the yaml alias
+        - matchers: ['{alerttype="stock"}']
+          group_by: *stock_grouping
     ...
 ```
