@@ -5,7 +5,7 @@ groups:
   - name: NamespaceSync
     rules:
       - alert: ArgoCDApplicationNotSynced
-        expr: argocd_app_info{autosync_enabled="true",sync_status!="Synced"} == 1
+        expr: (argocd_app_info{autosync_enabled="true",sync_status!="Synced"} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h
         labels:
           alerttype: stock
@@ -16,7 +16,7 @@ groups:
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationAutoSyncDisabled
-        expr: (argocd_app_info{autosync_enabled="false"} == 1) * on (namespace) group_left(team) uw_namespace_team
+        expr: (argocd_app_info{autosync_enabled="false"} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h
         labels:
           alerttype: stock
@@ -32,7 +32,7 @@ groups:
             `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} patch --type='merge' applications.argoproj.io {{$labels.name}} -p "{\"spec\":{\"syncPolicy\":{\"automated\":{\"prune\":false,\"selfHeal\":false}}}}"`
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationSyncFailure
-        expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
+        expr: (increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
           alerttype: stock
           alertgroup: namespace_sync
@@ -42,7 +42,7 @@ groups:
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: KubeApplierErrors
-        expr: kube_applier_last_run_success != 1
+        expr: (kube_applier_last_run_success != 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h10m
         labels:
           alerttype: stock
