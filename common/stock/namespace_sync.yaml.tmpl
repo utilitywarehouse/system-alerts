@@ -5,20 +5,22 @@ groups:
   - name: NamespaceSync
     rules:
       - alert: ArgoCDApplicationNotSynced
-        expr: argocd_app_info{autosync_enabled="true",sync_status!="Synced"} == 1
+        expr: (argocd_app_info{autosync_enabled="true",sync_status!="Synced"} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h
         labels:
-          group: namespace_sync
+          alerttype: stock
+          alertgroup: namespace_sync
         annotations:
           summary: "Argo CD application {{$labels.name}} is not synced for last 1h"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationAutoSyncDisabled
-        expr: argocd_app_info{autosync_enabled="false"} == 1
+        expr: (argocd_app_info{autosync_enabled="false"} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h
         labels:
-          group: namespace_sync
+          alerttype: stock
+          alertgroup: namespace_sync
         annotations:
           summary: "Auto Sync on Argo CD application {{$labels.name}} is disabled"
           impact: "New manifests won't be automatically deployed."
@@ -30,19 +32,21 @@ groups:
             `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} patch --type='merge' applications.argoproj.io {{$labels.name}} -p "{\"spec\":{\"syncPolicy\":{\"automated\":{\"prune\":false,\"selfHeal\":false}}}}"`
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: ArgoCDApplicationSyncFailure
-        expr: increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0
+        expr: (increase(argocd_app_sync_total{phase=~"Error|Failed"}[1h]) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
-          group: namespace_sync
+          alerttype: stock
+          alertgroup: namespace_sync
         annotations:
           summary: "Argo CD application {{$labels.name}} Sync failed"
           impact: "Some manifests won't be automatically deployed."
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: KubeApplierErrors
-        expr: kube_applier_last_run_success != 1
+        expr: (kube_applier_last_run_success != 1) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 1h10m
         labels:
-          group: namespace_sync
+          alerttype: stock
+          alertgroup: namespace_sync
         annotations:
           summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
           impact: Some manifest won't be automatically deployed.
