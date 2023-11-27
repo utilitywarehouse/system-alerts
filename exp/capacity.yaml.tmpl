@@ -3,6 +3,7 @@
 
 groups:
   - name: capacity
+    rules:
       - alert: AvailabilityZoneRunningOutOfMemory95
         expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.95
         for: 1h
