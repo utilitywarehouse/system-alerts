@@ -3,8 +3,8 @@ kind: Component
 
 configMapGenerator:
   - files:
-      - capacity.yaml.tmpl
-    name: alert-templates-exp
+      - capacity-experiments.yaml.tmpl
+    name: alert-templates-capacity-experiments
 
 patches:
   - path: volume.yaml
