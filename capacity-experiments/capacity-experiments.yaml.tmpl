@@ -1,0 +1,34 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: capacity-experiments
+    rules:
+      - alert: AvailabilityZoneRunningOutOfMemory95
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.95
+        for: 1h
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of memory for pods"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
+      - alert: AvailabilityZoneRunningOutOfMemory99
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.99
+        for: 1h
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of memory for pods"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
+      - alert: NodeUnderMemoryPressure
+        expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        labels:
+          team: infra
+        annotations:
+          summary: "Node {{ $labels.node }} is under memory pressure and evicting pods"
+      - alert: PodEvicted
+        expr: kube_pod_status_reason{reason="Evicted"} == 1
+        labels:
+          team: infra
+        annotations:
+          summary: "Pod {{ $labels.pod }} got evicted"

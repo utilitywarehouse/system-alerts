@@ -13,6 +13,7 @@ configMapGenerator:
       - stock/namespace_sync.yaml.tmpl
       - stock/storage.yaml.tmpl
       - stock/terraform_sync.yaml.tmpl
+      - stock/team_detection.yaml
       - stock/vault-clients.yaml.tmpl
     name: alert-templates-common
 

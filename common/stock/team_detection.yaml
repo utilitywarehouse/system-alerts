@@ -1,0 +1,10 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: team_detection
+    rules:
+      # used as: `<metric_with_namespace_label> * on (namespace) group_left (team) uw_namespace_oncall_team`
+      - record: uw_namespace_oncall_team
+        # job filtering is needed to avoid duplicated `kube_namespace_annotations` from `opencost` job
+        expr: sum by (namespace, team) (label_replace(kube_namespace_annotations{job="kube-state-metrics"}, "team", "$1", "annotation_uw_systems_oncall_team", "(.*)"))

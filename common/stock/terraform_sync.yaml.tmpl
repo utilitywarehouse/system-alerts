@@ -5,10 +5,12 @@ groups:
   - name: TerraformSync
     rules:
       - alert: TerraformApplierErrors
-        expr: terraform_applier_module_last_run_success == 0
+        expr: (terraform_applier_module_last_run_success == 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+
         for: 1h10m
         labels:
-          group: terraform_sync
+          alerttype: stock
+          alertgroup: terraform_sync
         annotations:
           summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
           description: |

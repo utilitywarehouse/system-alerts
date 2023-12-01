@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-capacity-experiments
+              mountPath: /var/thanos/rule-templates/capacity-experiments
+      volumes:
+        - name: rule-templates-capacity-experiments
+          configMap:
+            name: alert-templates-capacity-experiments
