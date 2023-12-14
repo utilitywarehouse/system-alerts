@@ -4,7 +4,23 @@
 groups:
   - name: capacity-experiments
     rules:
-      - alert: AvailabilityZoneRunningOutOfMemory95
+      - alert: AvailabilityZoneRunningOutOfMemory95for10m
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.95
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of memory for pods"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
+      - alert: AvailabilityZoneRunningOutOfMemory99for10m
+        expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.99
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "AZ {{ $labels.zone}} is running out of memory for pods"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
+      - alert: AvailabilityZoneRunningOutOfMemory95for1h
         expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.95
         for: 1h
         labels:
@@ -12,7 +28,7 @@ groups:
         annotations:
           summary: "AZ {{ $labels.zone}} is running out of memory for pods"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
-      - alert: AvailabilityZoneRunningOutOfMemory99
+      - alert: AvailabilityZoneRunningOutOfMemory99for1h
         expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.99
         for: 1h
         labels:
@@ -22,6 +38,7 @@ groups:
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"
       - alert: NodeUnderMemoryPressure
         expr: kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 5m
         labels:
           team: infra
         annotations:
