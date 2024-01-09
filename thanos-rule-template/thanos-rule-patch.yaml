@@ -19,7 +19,7 @@ spec:
                 f=$(basename $file);
                 # If the file has a .tmpl or .tpl extension - remove it
                 f=${f%".tmpl"} && f=${f%".tpl"}
-                envsubst '${ENVIRONMENT},${PROVIDER}' < $file > /var/thanos/rules/$f;
+                envsubst '${ENVIRONMENT},${PROVIDER},${NODE_ROLL_WINDOW}' < $file > /var/thanos/rules/$f;
               done;
           volumeMounts:
             - name: rules-rendered
