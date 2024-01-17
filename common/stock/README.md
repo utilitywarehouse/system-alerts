@@ -6,9 +6,9 @@ to consume.
 Stock alerts are already setup and "firing" for all namespaces. Teams only need
 to claim namespace oncall responsibility to receive them.
 
-To do so, add a `uw.systems/oncall-team` annotation to namespaces to claim
-them, and the team will receive the stock alerts for those namespaces
-automatically.
+To do so, add a `uw.systems/oncall-team` **annotation** (not label!) to
+namespaces to claim them, and the team will receive the stock alerts for those
+namespaces automatically.
 
 Namespace definitions live in `kubernetes-manifests/<cluster>/kube-system/namespaces.yaml`
 
