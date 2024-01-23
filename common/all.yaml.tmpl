@@ -64,6 +64,11 @@ groups:
           count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
         labels:
           team: infra
+      - alert: RebootRequiredAlertInhibitor
+        expr:
+        sum(kured_reboot_required) > 0
+        labels:
+          team: infra
       - alert: NodeUnschedulable
         expr: count(kube_node_spec_unschedulable == 1) > 0
         for: 1h
