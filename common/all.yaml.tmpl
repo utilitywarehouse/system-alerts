@@ -64,6 +64,14 @@ groups:
           count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
         labels:
           team: infra
+      - alert: NodeStuckRebooting
+        expr:
+          sum(kured_reboot_required) > 0 and sum(kured_reboot_required) - sum(kured_reboot_required offset 30m) == 0 and ON() hour() > 6 < 18
+        labels:
+          team: infra
+        annotations:
+          description: Workers require rebooting but no reboots have occurred in the last 30m
+          summary: A worker appears to be stuck rebooting
       - alert: RebootRequiredAlertInhibitor
         expr:
         sum(kured_reboot_required) > 0
