@@ -74,7 +74,7 @@ groups:
           summary: A worker appears to be stuck rebooting
       - alert: RebootRequiredAlertInhibitor
         expr:
-        sum(kured_reboot_required) > 0
+          sum(kured_reboot_required) > 0
         labels:
           team: infra
       - alert: NodeUnschedulable
