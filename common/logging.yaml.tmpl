@@ -20,14 +20,6 @@ groups:
         annotations:
           summary: "{{ $labels.kubernetes_pod_name }} can't ingest logs from {{ $labels.input }} for 2h"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
-      - alert: LogForwarderFailingToInput(external)
-        expr: rate(fluentd_input_status_num_records_total{job="log-forwarder"}[5m]) == 0
-        for: 2h
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.instance }} can't ingest logs from {{ $labels.input }} for 2h"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
       - alert: LogForwarderFailingToOutput(kube)
         expr: rate(fluentd_output_status_retry_count{job="kubernetes-pods",kubernetes_pod_name=~"forwarder-.*"}[5m]) > 0
         for: 15m
@@ -36,14 +28,6 @@ groups:
         annotations:
           summary: "{{ $labels.kubernetes_pod_name }} can't forward logs for 15m"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
-      - alert: LogForwarderFailingToOutput(external)
-        expr: rate(fluentd_output_status_retry_count{job="log-forwarder"}[5m]) > 0
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.instance }} can't forward logs for 15m"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
       - alert: LogForwarderBufferFillingUp(kube)
         expr: fluentd_output_status_buffer_available_space_ratio{job="kubernetes-pods",kubernetes_pod_name=~"forwarder-.*"} < 95
         for: 15m
@@ -52,14 +36,6 @@ groups:
         annotations:
           summary: "Forwarder buffer is over 5%"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-forwarder_pod={{ $labels.kubernetes_pod_name }}"
-      - alert: LogForwarderBufferFillingUp(external)
-        expr: fluentd_output_status_buffer_available_space_ratio{job="log-forwarder"} < 95
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "Forwarder buffer is over 5%"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bk2muXYMz/log-forwarder?var-instance={{ $labels.instance }}"
       - alert: LogForwarderDroppingSystemLogs
         expr: rate(log_forwarder_messages_total{log_kube_namespace=~"kube-system|sys-*", log_kube_app!="apiserver", log_kube_app!="kube-controller"}[5m]) > 10
         for: 10m
@@ -85,10 +61,17 @@ groups:
         annotations:
           summary: "Log aggregator buffer is over 50%"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/vcsXDH2mz/fluentd-aggregators?orgId=1&refresh=5m"
-      - alert: PromtailDroppingSystemLogs
+      - alert: PromtailThrottling
         expr: rate(logentry_dropped_lines_by_label_total{label_name="limit_key", label_value=~"kube-system.*|sys-.*"}[5m]) > 10
         for: 10m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.label_value }} is being noisy and dropping logs"
+          summary: "{{ $labels.label_value }} is throttling and dropping logs"
+      - alert: PromtailDroppingSystemLogs(external)
+        expr: rate(promtail_dropped_entries_total{kubernetes_cluster="exp-1-aws",reason="ingester_error",tenant=""}[5m]) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.instance }} is being noisy and dropping logs"
