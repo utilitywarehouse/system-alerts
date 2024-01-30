@@ -7,6 +7,7 @@ groups:
       - alert: DeploymentMissingReplicas
         expr: (kube_deployment_spec_replicas != kube_deployment_status_replicas_available) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 15m
+        keep_firing_for: 15m
         labels:
           alerttype: stock
           alertgroup: missing_replicas
@@ -18,6 +19,7 @@ groups:
       - alert: StatefulsetMissingReplicas
         expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 15m
+        keep_firing_for: 15m
         labels:
           alerttype: stock
           alertgroup: missing_replicas
@@ -29,6 +31,7 @@ groups:
       - alert: DeploymentMissingAllReplicas
         expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 5m
+        keep_firing_for: 5m
         labels:
           alerttype: stock
           alertgroup: missing_replicas
@@ -40,6 +43,7 @@ groups:
       - alert: StatefulsetMissingAllReplicas
         expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 5m
+        keep_firing_for: 5m
         labels:
           alerttype: stock
           alertgroup: missing_replicas
