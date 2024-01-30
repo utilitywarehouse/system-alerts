@@ -19,6 +19,7 @@ downstream:
 
 - ENVIRONMENT: exp-1|dev|prod
 - PROVIDER: aws|gcp|merit
+- NODE_ROLL_WINDOW: Expected time we need a node to reboot so we do not trigger DS alerts
 
 # How to use it
 
@@ -60,6 +61,8 @@ spec:
               value: exp-1
             - name: PROVIDER
               value: aws
+            - name: NODE_ROLL_WINDOW
+              value: 5m
 ```
 
 # How to add new bases

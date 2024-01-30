@@ -6,11 +6,14 @@ to consume.
 Stock alerts are already setup and "firing" for all namespaces. Teams only need
 to claim namespace oncall responsibility to receive them.
 
-To do so, add a `uw.systems/oncall-team` annotation to namespaces to claim
-them, and the team will receive the stock alerts for those namespaces
-automatically.
+To do so, add a `uw.systems/oncall-team` **annotation** (not label!) to
+namespaces to claim them, and the team will receive the stock alerts for those
+namespaces automatically.
 
-Namespace definitions live in `kubernetes-manifests/<cluster>/kube-system/namespaces.yaml`
+Namespace definitions live in
+`kubernetes-manifests/<cluster>/kube-system/namespaces.yaml` or in
+`kubernetes-manifests/<cluster>/<namespace>/00-namespaces.yaml`, depending on
+whether they use ArgoCD or Kube-Applier for automatic deployment. 
 
 ### Opting out of some alerts
 If you want to opt out of some alerts, you can have a subroute matching what
