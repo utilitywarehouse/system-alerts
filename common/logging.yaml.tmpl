@@ -11,7 +11,7 @@ groups:
           team: infra
         annotations:
           summary: "{{ $labels.instance }} log forwarder is not exposing metrics for 30m"
-          action: "ssh into {{ $labels.instance }} and make sure `log-forwarder.service` is running"
+          action: "ssh into {{ $labels.instance }} and make sure `promtail.service` is running"
       - alert: LogForwarderFailingToInput(kube)
         expr: rate(fluentd_input_status_num_records_total{job="kubernetes-pods",kubernetes_pod_name=~"forwarder-.*"}[5m]) == 0
         for: 2h
