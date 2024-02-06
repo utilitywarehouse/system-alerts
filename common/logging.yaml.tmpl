@@ -69,7 +69,7 @@ groups:
         annotations:
           summary: "{{ $labels.label_value }} is throttling and dropping logs"
       - alert: PromtailDroppingSystemLogs(external)
-        expr: rate(promtail_dropped_entries_total{kubernetes_cluster="exp-1-aws",reason="ingester_error",tenant=""}[5m]) > 0
+        expr: rate(promtail_dropped_entries_total{reason="ingester_error"}[5m]) > 0
         for: 10m
         labels:
           team: infra
