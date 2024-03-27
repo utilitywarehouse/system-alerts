@@ -14,16 +14,16 @@ groups:
           impact: "Shards missing or unallocated- risk of data loss, degraded cluster performance"
           action: "Check the Elasticsearch documentation for the debug and recovery options"
           link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html"
-       - alert: ElasticsearchClusterYellow
-         expr: (sum(label_replace(elasticsearch_cluster_health_status{color="yellow"}, "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, cluster) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
-         labels:
-           alerttype: stock
-           alertgroup: elasticsearch
-         annotations:
-           summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is red"
-           impact: "Replica shards missing or unallocated- reduced redundancy, degraded cluster performance"
-           action: "Check the Elasticsearch documentation for the debug and recover options"
-           link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html"
+      - alert: ElasticsearchClusterYellow
+        expr: (sum(label_replace(elasticsearch_cluster_health_status{color="yellow"}, "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, cluster) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is red"
+          impact: "Replica shards missing or unallocated- reduced redundancy, degraded cluster performance"
+          action: "Check the Elasticsearch documentation for the debug and recover options"
+          link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html"
       - alert: ElasticsearchHeapUsageTooHigh
         expr: (label_replace(max(elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}) by (kubernetes_namespace, cluster), "namespace", "$1", "kubernetes_namespace", "(.*)") * 100 > 90) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 2m
