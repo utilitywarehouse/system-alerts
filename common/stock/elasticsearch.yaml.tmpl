@@ -1,0 +1,75 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: Elasticsearch
+    rules:
+      - alert: ElasticsearchClusterRed
+        expr: (sum(label_replace(elasticsearch_cluster_health_status{color="red"}, "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, cluster) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is red"
+          impact: "Shards missing or unallocated- risk of data loss, degraded cluster performance"
+          action: "Check the Elasticsearch documentation for the debug and recovery options"
+          link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html"
+       - alert: ElasticsearchClusterYellow
+         expr: (sum(label_replace(elasticsearch_cluster_health_status{color="yellow"}, "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, cluster) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+         labels:
+           alerttype: stock
+           alertgroup: elasticsearch
+         annotations:
+           summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is red"
+           impact: "Replica shards missing or unallocated- reduced redundancy, degraded cluster performance"
+           action: "Check the Elasticsearch documentation for the debug and recover options"
+           link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html"
+      - alert: ElasticsearchHeapUsageTooHigh
+        expr: (label_replace(max(elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"}) by (kubernetes_namespace, cluster), "namespace", "$1", "kubernetes_namespace", "(.*)") * 100 > 90) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 2m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of heap memory."
+          impact: "Cluster might crash soon"
+          action: "Adjust value of env variable ELASTICSEARCH_HEAP_SIZE."
+      - alert: ElasticsearchDiskOutOfSpace
+        expr: (label_replace(max(elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes) by (kubernetes_namespace, cluster), "namespace", "$1", "kubernetes_namespace", "(.*)") * 100 < 10) * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of available disk space."
+          impact: "Cluster might crash soon"
+          action: "Adjust assigned PVC size or remove obsolete data."
+      - alert: ElasticsearchUnassignedShards
+        expr: (label_replace(elasticsearch_cluster_health_unassigned_shards, "namespace", "$1", "kubernetes_namespace", "(.*)") > 0)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has unassigned shards."
+          impact: "Risk of data loss, degraded cluster performance, possible search and retrieval issues"
+          action: "Check the Elasticsearch documentation for the debug and recovery options"
+          link: "https://www.elastic.co/guide/en/elasticsearch/reference/current/diagnose-unassigned-shards.html"
+      - alert: ElasticsearchCircuitBreakerTripped
+        expr: (label_replace(rate(elasticsearch_breakers_tripped{}[5m]), "namespace", "$1", "kubernetes_namespace", "(.*)") > 0)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 1m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} circuit breaker tripped."
+          impact: "This means Elasticsearch stopped processing requests to prevent out of memory errors."
+          action: "Adjust value of env variable ELASTICSEARCH_HEAP_SIZE or modify requests to load less data."
+      - alert: ElasticsearchPendingTasks
+        expr: (label_replace(elasticsearch_cluster_health_number_of_pending_tasks, "namespace", "$1", "kubernetes_namespace", "(.*)") > 0)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: "Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has pending tasks."
+          impact: "Elasticsearch has list of pending tasks since 15 minutes. Cluster works slowly."
+          action: "Check if cluster is not oversharded, increase amount of nodes"
