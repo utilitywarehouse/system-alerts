@@ -1,0 +1,5 @@
+# System
+*                                      @utilitywarehouse/system
+
+# Dev-enablement
+common/stock/elasticsearch.yaml.tmpl   @utilitywarehouse/dev-enablement
