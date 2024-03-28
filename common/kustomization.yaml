@@ -10,11 +10,12 @@ configMapGenerator:
       - vault.yaml.tmpl
 
       - stock/container.yaml.tmpl
+      - stock/elasticsearch.yaml.tmpl
       - stock/missing_replicas.yaml.tmpl
       - stock/namespace_sync.yaml.tmpl
       - stock/storage.yaml.tmpl
-      - stock/terraform_sync.yaml.tmpl
       - stock/team_detection.yaml
+      - stock/terraform_sync.yaml.tmpl
       - stock/vault-clients.yaml.tmpl
     name: alert-templates-common
 
