@@ -6,14 +6,14 @@ groups:
     rules:
       - alert: KubeletCadvisorNotResponding
         expr: up{job="kubernetes-nodes"} != 1
-        for: 15m
+        for: $NODE_ROLL_WINDOW
         labels:
           team: infra
         annotations:
           description:
             "{{ $labels.instance }} ({{ $labels.role }}) has been down for
-            more than 15 minutes."
-          summary: Kubernetes node is down
+            over $NODE_ROLL_WINDOW"
+          summary: "Kubernetes node is down for over $NODE_ROLL_WINDOW"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All"
       - alert: KubernetesCACertExpiringSoon
         expr: ca_cert_expiry_timestamp{app="kube-ca-cert-server"} - time() < 86400 * 2
@@ -51,7 +51,7 @@ groups:
       - alert: NodeNotReady
         expr:
           count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
-        for: 15m
+        for: $NODE_ROLL_WINDOW
         labels:
           team: infra
         annotations:
@@ -60,6 +60,7 @@ groups:
             Ready.
           summary: Kubernetes node is Not Ready
       - alert: NodeNotReadyAlertInhibitor
+        keep_firing_for: 2m
         expr:
           count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
         labels:
