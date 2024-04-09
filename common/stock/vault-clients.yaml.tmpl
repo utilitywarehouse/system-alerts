@@ -17,16 +17,31 @@ groups:
             been renewed. This may cause issues for the other containers in the pod.
           summary: "The credentials for '{{ $labels.kubernetes_pod_name }}' have expired"
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
-      - alert: VaultSidecarMissing
-        expr: ((kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) (kube_pod_status_scheduled{condition="true"} == 1)) unless on (pod,namespace) kube_pod_container_info{container=~"vault-credentials-agent.*"}) * on (namespace) group_left(team) uw_namespace_oncall_team
+      - alert: VaultSidecarMissingTumblr
+        expr: ((kube_pod_annotations{annotation_injector_tumblr_com_request=~"vault-sidecar-.+"} and on (pod,namespace) (kube_pod_status_scheduled{condition="true"} == 1)) unless on (pod,namespace) (kube_pod_init_container_info{container=~"vault-credentials-agent.*"} or kube_pod_container_info{container=~"vault-credentials-agent.*"})) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 10m
         labels:
           alerttype: stock
           alertgroup: vault_clients
         annotations:
           description: |
-            The pod is annotated with `{{ $labels.key }}={{ $labels.value }}` but does not have a
-            container matching the name `vault-credentials-agent.*`. This indicates an issue with
-            the sidecar injection. Check the `kube-system/k8s-sidecar-injector` deployment for problems.
+            The Pod is annotated with `{{ $labels.key }}={{ $labels.value }}`
+            but does not have a sidecar container matching the name
+            `vault-credentials-agent.*`. This indicates an issue with the
+            sidecar injection. Check the `kube-system/kyverno` for problems.
+          summary: "Vault sidecar is missing from {{ $labels.namespace }}/{{ $labels.pod }}"
+          dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
+      - alert: VaultSidecarMissingUW
+        expr: ((kube_pod_annotations{annotation_uw_systems_kyverno_inject_sidecar_request=~"vault-sidecar-.+"} and on (pod,namespace) (kube_pod_status_scheduled{condition="true"} == 1)) unless on (pod,namespace) (kube_pod_init_container_info{container=~"vault-credentials-agent.*"} or kube_pod_container_info{container=~"vault-credentials-agent.*"})) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: vault_clients
+        annotations:
+          description: |
+            The Pod is annotated with `{{ $labels.key }}={{ $labels.value }}`
+            but does not have a sidecar container matching the name
+            `vault-credentials-agent.*`. This indicates an issue with the
+            sidecar injection. Check the `kube-system/kyverno` for problems.
           summary: "Vault sidecar is missing from {{ $labels.namespace }}/{{ $labels.pod }}"
           dashboard: https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/U61wpstMk/vault-credentials-sidecars
