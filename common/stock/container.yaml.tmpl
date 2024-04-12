@@ -4,15 +4,15 @@
 groups:
   - name: Container
     rules:
-      # Set period to 2h to capture slow crashing containers like
-      # thanos-compact that take a long time to start up
+      # Set period to 30m to cater to most workloads. Slow crashing containers
+      # like `thanos-compact` need to setup a dedicated alert.
       - alert: ContainerRestartingOften
-        expr: (increase(kube_pod_container_status_restarts_total[2h]) > 3) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: (increase(kube_pod_container_status_restarts_total[30m]) > 3) * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
           alerttype: stock
           alertgroup: container
         annotations:
-          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 2h"
+          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 30m"
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}"
