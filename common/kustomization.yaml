@@ -17,6 +17,7 @@ configMapGenerator:
       - stock/storage.yaml.tmpl
       - stock/team_detection.yaml
       - stock/terraform_sync.yaml.tmpl
+      - stock/timezone-bst.yaml
       - stock/vault-clients.yaml.tmpl
     name: alert-templates-common
 
