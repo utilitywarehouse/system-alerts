@@ -5,6 +5,7 @@ configMapGenerator:
   - files:
       - all.yaml.tmpl=all.yaml.tmpl
       - canary.yaml
+      - cert-manager.yaml.tmpl
       - daemonset.yaml.tmpl=daemonset.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
       - metrics.yaml.tmpl
