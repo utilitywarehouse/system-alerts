@@ -1,0 +1,12 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: cert-manager
+    rules:
+      - alert: CertManagerCertificateExpiring
+        expr: certmanager_certificate_expiration_timestamp_seconds{namespace=~"kube-system|sys.*"} - time() < (3600 * 24 * 7) # Less than 7 days
+        labels:
+          team: infra
+        annotations:
+          summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} will expire in less than 7 days"
