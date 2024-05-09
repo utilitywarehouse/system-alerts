@@ -62,12 +62,13 @@ groups:
           summary: "Log aggregator buffer is over 50%"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/vcsXDH2mz/fluentd-aggregators?orgId=1&refresh=5m"
       - alert: PromtailThrottling
-        expr: rate(logentry_dropped_lines_by_label_total{label_name="limit_key", label_value=~"kube-system.*|sys-.*"}[5m]) > 10
+        expr: label_replace(rate(logentry_dropped_lines_by_label_total{label_name="limit_key", label_value=~"kube-system.*|sys-.*"}[5m]) > 10, "label_namespace", "$1", "label_value", `(.*)\/(.*)`)
         for: 10m
         labels:
           team: infra
         annotations:
           summary: "{{ $labels.label_value }} is throttling and dropping logs"
+          dashboard: https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-6h","now","Loki",{"expr":"sum(count_over_time({kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.label_namespace}}\"}[5m]))by(container)"}]
       - alert: PromtailDroppingSystemLogs(external)
         expr: rate(promtail_dropped_entries_total{reason="ingester_error"}[5m]) > 0
         for: 10m
