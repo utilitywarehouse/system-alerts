@@ -4,9 +4,9 @@
 groups:
   - name: cert-manager
     rules:
-      - alert: CertManagerCertificateExpiring
-        expr: certmanager_certificate_expiration_timestamp_seconds{namespace=~"kube-system|sys.*"} - time() < (3600 * 24 * 7) # Less than 7 days
+      - alert: CertificatePastRenewalTime
+        expr: certmanager_certificate_renewal_timestamp_seconds{namespace=~"kube-system|sys.*"} - time() < 0
         labels:
           team: infra
         annotations:
-          summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} will expire in less than 7 days"
+          summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} is past renewal time"
