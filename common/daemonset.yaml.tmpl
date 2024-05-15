@@ -15,7 +15,7 @@ groups:
           summary: "Daemonset {{$labels.namespace}}/{{$labels.daemonset}} has missing replicas"
           impact: "Workload unavailable on some nodes"
           action: "Check why some replicas are not healthy"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}`"
       - alert: DaemonsetMissingAllReplicas
         expr: (kube_daemonset_status_number_ready == 0 and kube_daemonset_status_desired_number_scheduled != 0) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: $NODE_ROLL_WINDOW
@@ -26,4 +26,4 @@ groups:
           summary: "Daemonset {{$labels.namespace}}/{{$labels.daemonset}} has 0 healthy replicas."
           impact: "Workload is down"
           action: "Check why all replicas are missing"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}`"

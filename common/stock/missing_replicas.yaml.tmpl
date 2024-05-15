@@ -15,7 +15,7 @@ groups:
           summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has missing replicas for 15m"
           impact: "Workload may be unavailable or have lost high availability"
           action: "Check why some replicas are not healthy"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}`"
       - alert: StatefulsetMissingReplicas
         expr: (kube_statefulset_status_replicas_ready != kube_statefulset_status_replicas) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 15m
@@ -27,7 +27,7 @@ groups:
           summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has missing replicas for 15m"
           impact: "Workload may be unavailable or have lost high availability"
           action: "Check why some replicas are not healthy"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}`"
       - alert: DeploymentMissingAllReplicas
         expr: (kube_deployment_status_replicas_available == 0 and kube_deployment_status_replicas != 0) * ON (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 5m
@@ -39,7 +39,7 @@ groups:
           summary: "Deployment {{$labels.namespace}}/{{$labels.deployment}} has 0 healthy replicas."
           impact: "Workload is down"
           action: "Check why all replicas are missing"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe deployment {{ $labels.deployment }}`"
       - alert: StatefulsetMissingAllReplicas
         expr: (kube_statefulset_status_replicas_ready == 0 and kube_statefulset_status_replicas != 0) * ON (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 5m
@@ -51,4 +51,4 @@ groups:
           summary: "Statefulset {{$labels.namespace}}/{{$labels.statefulset}} has 0 healthy replicas."
           impact: "Workload is down"
           action: "Check why all replicas are missing"
-          command: "kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe statefulset {{ $labels.statefulset }}`"
