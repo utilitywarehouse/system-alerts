@@ -1,0 +1,64 @@
+groups:
+  - name: CockroachDB
+    rules:
+      - alert: CockroachdbQueriesErroring
+        expr: (sum(label_replace(rate(sql_failure_count[10m]),  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 0)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} reports query failures"
+          impact: "Some of the queries are failing"
+          action: "Use the Insights page to find failed executions and modify the queries"
+      - alert: CockroachdbWriteStalls
+        expr: (sum(label_replace(rate(storage_write_stalls[10m]),  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 0)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} reports write stalls"
+          impact: "Bad cluster performance, node liveness issues"
+          action: "Check the storage hard drives"
+          link: "https://www.cockroachlabs.com/docs/stable/cluster-setup-troubleshooting#disk-stalls"
+      - alert: CockroachdbRangesUnderreplicated
+        expr: (sum(label_replace(ranges_underreplicated,  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 1)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} reports that some ranges doesn't have enough replicas"
+          impact: "reduced fault tolerance, increased read/ write latency"
+          action: "See replication dashboard, check if there is there enough nodes in the cluster"
+          link: "https://www.cockroachlabs.com/docs/v24.1/cluster-setup-troubleshooting#replication-issues"
+      - alert: CockroachdbRangesUnavailable
+        expr: (sum(label_replace(ranges_unavailable,  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 1)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} cannot access some chunks of data"
+          impact: "Data inaccessibility"
+          action: "See replication dashboard, check if there is there enough nodes in the cluster"
+          link: "https://www.cockroachlabs.com/docs/v24.1/cluster-setup-troubleshooting#replication-issues"
+      - alert: CockroachdbAdmissionOverload
+        expr: (sum(label_replace(admission_io_overload,  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 0.8)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} is close to admission overload"
+          impact: "increased latency, query rejections"
+          action: "Check the cluster resources"
+          link: "https://www.cockroachlabs.com/blog/admission-control-unexpected-overload/"
+      - alert: CockroachdbContentionConflicts
+        expr: (sum(label_replace(rate(txn_restarts_sum[10m]),  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 10)  * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} reports high level of transaction restarts due to contention"
+          impact: "increased latency, increased resource usage"
+          action: "https://www.cockroachlabs.com/docs/v24.1/performance-best-practices-overview#reduce-transaction-contention"
+          link: "https://www.cockroachlabs.com/docs/v24.1/performance-best-practices-overview#transaction-contention"

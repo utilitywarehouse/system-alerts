@@ -1,3 +1,4 @@
 *                                      @utilitywarehouse/system
 
 common/stock/elasticsearch.yaml.tmpl   @utilitywarehouse/dev-enablement @utilitywarehouse/system
+common/stock/cockroachdb.yaml.tmpl   @utilitywarehouse/dev-enablement @utilitywarehouse/system
