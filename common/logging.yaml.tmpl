@@ -76,3 +76,27 @@ groups:
           team: infra
         annotations:
           summary: "{{ $labels.instance }} is being noisy and dropping logs"
+      - alert: VectorFailingToSendToLoki
+        # Checking that buffers are full (close to the max 500 events). Note
+        # that buffers won't get full unless logs are not getting through at
+        # all, since vector will throttle the inputs to keep the buffers in a
+        # comfortable state
+        expr: vector_buffer_events{component_id="loki"} > 475
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Vector cannot talk to loki"
+          description: "Vector's loki buffer is full, which means that it cannot talk to loki"
+          impact: "Vector is not accepting new logs from it's input sources"
+          action: "Check if loki is up and if vector can talk to it"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
+      - alert: VectorFailingToInput
+        expr: rate(vector_component_received_events_total{component_kind="source",component_id!="vector_metrics"}[5m]) == 0
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "Vector is not receiving logs"
+          description: "{{ $labels.kubernetes_pod_name }} received no logs from {{ $labels.component_id }} for 15m"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
