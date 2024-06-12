@@ -85,11 +85,11 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Vector can't talk to loki"
+          summary: "Vector cannot talk to loki"
           description: "Vector's loki buffer is full, which means that it cannot talk to loki"
           impact: "Vector is not accepting new logs from it's input sources"
           action: "Check if loki is up and if vector can talk to it"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?pod={{ $labels.kubernetes_pod_name }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
       - alert: VectorFailingToInput
         expr: rate(vector_component_received_events_total{component_kind="source",component_id!="vector_metrics"}[5m]) == 0
         for: 15m
@@ -98,4 +98,4 @@ groups:
         annotations:
           summary: "Vector is not receiving logs"
           description: "{{ $labels.kubernetes_pod_name }} received no logs from {{ $labels.component_id }} for 15m"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?pod={{ $labels.kubernetes_pod_name }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
