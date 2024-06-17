@@ -11,6 +11,7 @@ configMapGenerator:
       - metrics.yaml.tmpl
       - vault.yaml.tmpl
 
+      - stock/cockroachdb.yaml.tmpl
       - stock/container.yaml.tmpl
       - stock/elasticsearch.yaml.tmpl
       - stock/missing_replicas.yaml.tmpl
