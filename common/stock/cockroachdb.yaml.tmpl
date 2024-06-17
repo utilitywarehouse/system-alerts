@@ -29,7 +29,7 @@ groups:
         annotations:
           summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} reports that some ranges doesn't have enough replicas"
           impact: "reduced fault tolerance, increased read/ write latency"
-          action: "See replication dashboard, check if there is there enough nodes in the cluster"
+          action: "See the replication dashboard, check if there are enough nodes in the cluster"
           link: "https://www.cockroachlabs.com/docs/v24.1/cluster-setup-troubleshooting#replication-issues"
       - alert: CockroachdbRangesUnavailable
         expr: (sum(label_replace(ranges_unavailable,  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 1)  * on (namespace) group_left(team) uw_namespace_oncall_team
@@ -40,7 +40,7 @@ groups:
         annotations:
           summary: "CockroachDB cluster {{$labels.app}} in namespace {{$labels.namespace}} cannot access some chunks of data"
           impact: "Data inaccessibility"
-          action: "See replication dashboard, check if there is there enough nodes in the cluster"
+          action: "See the replication dashboard, check if there are enough nodes in the cluster"
           link: "https://www.cockroachlabs.com/docs/v24.1/cluster-setup-troubleshooting#replication-issues"
       - alert: CockroachdbAdmissionOverload
         expr: (sum(label_replace(admission_io_overload,  "namespace", "$1", "kubernetes_namespace", "(.*)")) by (namespace, app) > 0.8)  * on (namespace) group_left(team) uw_namespace_oncall_team
