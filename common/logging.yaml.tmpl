@@ -104,3 +104,16 @@ groups:
           pod: "{{ $labels.kubernetes_pod_name }}"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
           dashboard-fallback: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
+      - alert: VectorComponentErroring
+        exp: rate(vector_component_errors_total[5m]) > 0
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "Vector is erroring"
+          description: "Vector is having errors for 15m"
+          action: "Check the \"Troubleshooting\" section of the dashboard to see the kind of error"
+          component: "{{ $labels.component_id }}"
+          pod: "{{ $labels.kubernetes_pod_name }}"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
+          dashboard-fallback: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
