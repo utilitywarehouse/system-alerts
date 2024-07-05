@@ -93,17 +93,6 @@ groups:
           action: "Check if loki is up and if vector can talk to it"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
           dashboard_fallback: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
-      - alert: VectorFailingToInput
-        expr: rate(vector_component_received_events_total{component_kind="source",component_id!="vector_metrics"}[5m]) == 0
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "Vector is not receiving logs"
-          description: "Vector received no logs from {{ $labels.component_id }} for 15m"
-          pod: "{{ $labels.kubernetes_pod_name }}"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
-          dashboard_fallback: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
       - alert: VectorComponentErroring
         expr: rate(vector_component_errors_total[5m]) > 0
         for: 15m
