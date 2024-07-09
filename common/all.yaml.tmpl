@@ -197,7 +197,7 @@ groups:
         annotations:
           summary: Thanos compaction has failed to run and now is halted
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-compact\"}"}]|link>
       - alert: ThanosCompactCompactionsFailed
         expr: rate(prometheus_tsdb_compactions_failed_total{app="thanos-compact",kubernetes_namespace=~"sys-.*"}[5m]) > 0
         labels:
@@ -205,17 +205,17 @@ groups:
         annotations:
           summary: Thanos Compact is failing compaction
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-compact\"}"}]|link>
       - alert: ThanosSidecarPrometheusDown
         expr: thanos_sidecar_prometheus_up{name="prometheus",kubernetes_namespace=~"sys-.*"} == 0
-        for: 10m
+        for: 15m
         labels:
           team: infra
         annotations:
           summary: Thanos Sidecar cannot connect to Prometheus
           impact: Prometheus configuration is not being refreshed
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/IOteEKHik/thanos-sidecar?refresh=30s&orgId=1&var-interval=1m&var-labelvalue=prometheus&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=name|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/b19644bfbf0ec1e108027cce268d99f7/thanos-sidecar?orgId=1&var-datasource=default&var-interval=5m&var-kubernetes_name={{$labels.kubernetes_name}}|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-sidecar\"}"}]|link>
       - alert: ThanosRuleBadConfig
         expr: min(thanos_rule_config_last_reload_successful{app="thanos-rule",kubernetes_namespace=~"sys-.*"}) == 0
         for: 10m
@@ -226,7 +226,8 @@ groups:
           impact: On Thanos Rule restart alerts wont be loaded.
           action: Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-rule\"}"}]|link>
+      - alert: ThanosSidecarPrometheusDown
   - name: external-dns
     rules:
       - alert: ExternalDnsRegistryErrors
