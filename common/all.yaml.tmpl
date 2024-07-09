@@ -197,7 +197,7 @@ groups:
         annotations:
           summary: Thanos compaction has failed to run and now is halted
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact|link>
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: ThanosCompactCompactionsFailed
         expr: rate(prometheus_tsdb_compactions_failed_total{app="thanos-compact",kubernetes_namespace=~"sys-.*"}[5m]) > 0
         labels:
@@ -205,7 +205,7 @@ groups:
         annotations:
           summary: Thanos Compact is failing compaction
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/s48S7j4ik/thanos-compaction?refresh=30s&orgId=1&var-interval=1m&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-compact|link>
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: ThanosSidecarPrometheusDown
         expr: thanos_sidecar_prometheus_up{name="prometheus",kubernetes_namespace=~"sys-.*"} == 0
         for: 10m
@@ -215,7 +215,7 @@ groups:
           summary: Thanos Sidecar cannot connect to Prometheus
           impact: Prometheus configuration is not being refreshed
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/IOteEKHik/thanos-sidecar?refresh=30s&orgId=1&var-interval=1m&var-labelvalue=prometheus&var-namespace={{$labels.kubernetes_namespace}}&var-labelselector=name|link>
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: ThanosRuleBadConfig
         expr: min(thanos_rule_config_last_reload_successful{app="thanos-rule",kubernetes_namespace=~"sys-.*"}) == 0
         for: 10m
@@ -226,7 +226,7 @@ groups:
           impact: On Thanos Rule restart alerts wont be loaded.
           action: Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule|link>
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
   - name: external-dns
     rules:
       - alert: ExternalDnsRegistryErrors
@@ -335,7 +335,7 @@ groups:
         annotations:
           summary: "Etcd backup jobs have not completed in the last 30h"
           action: "Check cronjob status and job logs "
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
   - name: tls-probe-traefik
     rules:
       - alert: TLSProbeTargetDown
@@ -504,7 +504,7 @@ groups:
           summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
           description: |
             Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: SemaphoreXDSRequeued
         expr: semaphore_xds_queue_requeued_items > 0
         for: 10m
@@ -524,7 +524,7 @@ groups:
         annotations:
           summary: '{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes'
           description: Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: SemaphoreXDSNoZoneEndpoint
         expr: sum(semaphore_xds_snapshot_endpoint{locality_zone="none"}) > 0
         for: 1m
@@ -533,7 +533,7 @@ groups:
         annotations:
           summary: '{{ $labels.app }} xDS server snapshot advertises endpoints without a locality zone'
           description: xDS server snapshot contains endpoints with locality zone set to none. This is probably due to a missing zone in the respective Kubernetes EndpointSlice.
-          logs: <https://grafana.exp-1.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: AlertmanagerConfigReloadFailed
         expr: avg(alertmanager_config_last_reload_successful) == 0
         labels:
