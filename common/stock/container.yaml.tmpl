@@ -16,7 +16,7 @@ groups:
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",container=\"{{ $labels.container }}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
       # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
       - alert: ContainerCpuThrottled
         expr: ((sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace)) > 0.95) * on (namespace) group_left(team) uw_namespace_oncall_team
