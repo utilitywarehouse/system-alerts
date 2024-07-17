@@ -227,7 +227,6 @@ groups:
           action: Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule|link>
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-rule\"}"}]|link>
-      - alert: ThanosSidecarPrometheusDown
   - name: external-dns
     rules:
       - alert: ExternalDnsRegistryErrors
