@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Redirect output to stderr.
+exec 1>&2
+
+EXIT_CODE=0
+
+# List of changed files, excluding deleted ones
+if [[ -z "${GIT_CMD}" ]]; then
+  GIT_CMD="git diff --name-only --cached --diff-filter=d"
+else
+  GIT_CMD=${GIT_CMD}
+fi
+
+FILES=$(${GIT_CMD})
+
+for f in ${FILES}; do
+  # https://askubuntu.com/a/926695
+  if [[ $(head -1 "${f}" | tr '\0' '\n') =~ "PROMETHEUS RULES" ]]; then
+    NODE_ROLL_WINDOW=5m ENVIRONMENT=local PROVIDER=local envsubst '$NODE_ROLL_WINDOW,$ENVIRONMENT,$PROVIDER' < ${f} | promtool check rules
+    if [ $? -ne 0 ]; then
+        EXIT_CODE=1
+    fi
+  fi
+done
+
+exit $EXIT_CODE
