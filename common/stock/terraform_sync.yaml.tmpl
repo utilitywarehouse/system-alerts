@@ -5,8 +5,8 @@ groups:
   - name: TerraformSync
     rules:
       - alert: TerraformApplierErrors
-        expr: terraform_applier_module_last_run_success == 0
-        for: 1h10m
+        expr: terraform_applier_module_last_run_success{run_type!="PullRequestPlan"} == 0
+        for: 10m
         labels:
           group: terraform_sync
         annotations:
