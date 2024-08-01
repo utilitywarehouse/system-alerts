@@ -5,9 +5,8 @@ groups:
   - name: TerraformSync
     rules:
       - alert: TerraformApplierErrors
-        expr: (terraform_applier_module_last_run_success == 0) * on (namespace) group_left(team) uw_namespace_oncall_team
-
-        for: 1h10m
+        expr: (terraform_applier_module_last_run_success{run_type!="PullRequestPlan"} == 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 10m
         labels:
           alerttype: stock
           alertgroup: terraform_sync
