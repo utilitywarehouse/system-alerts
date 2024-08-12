@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       initContainers:
-        - name: render-alerts
+        - name: rule-watcher
           volumeMounts:
             - name: rule-templates-netapp
               mountPath: /var/thanos/rule-templates/netapp

@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       initContainers:
-        - name: render-alerts
+        - name: rule-watcher
           volumeMounts:
             - name: rule-templates-prometheus-ksm
               mountPath: /var/thanos/rule-templates/prometheus-ksm
