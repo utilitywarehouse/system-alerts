@@ -6,7 +6,7 @@ spec:
   template:
     spec:
       initContainers:
-        - name: render-alerts
+        - name: rule-watcher
           volumeMounts:
             - name: rule-templates-cumulus
               mountPath: /var/thanos/rule-templates/cumulus
