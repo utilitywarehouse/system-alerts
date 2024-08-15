@@ -9,6 +9,7 @@ configMapGenerator:
       - daemonset.yaml.tmpl=daemonset.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
       - metrics.yaml.tmpl
+      - terraform-applier.yaml.tmpl
       - vault.yaml.tmpl
 
       - stock/cockroachdb.yaml.tmpl
