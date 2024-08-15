@@ -1,0 +1,25 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: Terraform-Applier
+    rules:
+      - alert: TerraformApplierWorkqueueNotDrained
+        expr: workqueue_depth{name="module"} > 0
+        for: 20m
+        labels:
+          team: infra
+        annotations:
+          summary: "Terraform-applier's backlog is not being drained for last 20m, Queue depth for {{ $labels.name }} has reached {{ $value }}."
+          impact: "Terraform applier is probably frozen and not processing/running any modules"
+          action: "Check logs and restart controller to fix"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.kubernetes_namespace }} rollout restart sts {{ $labels.kubernetes_name }}`"
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s"|link>
+      - alert: TerraformApplierGitMirrorError
+        expr: time() - max by (repo) (terraform_applier_git_last_mirror_timestamp{}) > 600
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Terraform-applier has not been able to fetch '{{ $labels.repo }}' repository in the last 10m"
+          impact: "Terraform applier will not be running modules from this repository"
