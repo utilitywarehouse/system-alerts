@@ -116,13 +116,3 @@ groups:
           summary: "Vector is not receiving logs"
           description: "Vector received no logs from {{ $labels.component_id }} for 2h"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
-      # Secondary alert, intended for "low rate" inputs, only checked on busy clusters
-      - alert: VectorFailingToInput12h
-        expr: sum by (component_id) (rate(vector_component_received_events_total{component_kind="source",kubernetes_cluster=~"prod-aws|dev-aws|dev-merit", component_id=~"kubernetes_events|s3_msk"}[5m])) == 0
-        for: 12h
-        labels:
-          team: infra
-        annotations:
-          summary: "Vector is not receiving logs"
-          description: "Vector received no logs from {{ $labels.component_id }} for 12h"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
