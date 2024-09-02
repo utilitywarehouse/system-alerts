@@ -32,7 +32,7 @@ groups:
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_name}}.*\"}"}]|link>
       - alert: ThanosRuleGroupEvaluationsMissed
         expr: |
-          sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_name, rule_group) (rate(prometheus_rule_group_iterations_missed_total{}[5m])) > 0
+          sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_name, rule_group) (increase(prometheus_rule_group_iterations_missed_total{}[5m])) > 0
         labels:
           team: infra
         annotations:
