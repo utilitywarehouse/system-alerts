@@ -23,6 +23,7 @@ groups:
             >
             sum by(kubernetes_cluster, kubernetes_namespace, kubernetes_name, rule_group) (prometheus_rule_group_interval_seconds{})
           ) > 5
+        for: 5m
         labels:
           team: infra
         annotations:
@@ -33,6 +34,7 @@ groups:
       - alert: ThanosRuleGroupEvaluationsMissed
         expr: |
           sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_name, rule_group) (increase(prometheus_rule_group_iterations_missed_total{}[5m])) > 0
+        for: 5m
         labels:
           team: infra
         annotations:
