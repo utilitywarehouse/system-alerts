@@ -4,8 +4,8 @@
 groups:
   - name: metrics
     rules:
-        # thanos-compact is a slow crasher, so it needs a more sensitive
-        # "ContainerRestartingOften" alert than the stock one
+      # thanos-compact is a slow crasher, so it needs a more sensitive
+      # "ContainerRestartingOften" alert than the stock one
       - alert: ThanosCompactRestartingOften
         expr: increase(kube_pod_container_status_restarts_total{container="thanos-compact"}[2h]) > 3
         labels:
@@ -16,3 +16,78 @@ groups:
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",app_kubernetes_io_name=\"{{$labels.label_app_kubernetes_io_name}}\"}"}]|link>
+      # https://github.com/thanos-io/thanos/blob/main/examples/alerts/alerts.md
+      - alert: ThanosRuleQueueIsDroppingAlerts
+        expr: sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name) (rate(thanos_alert_queue_alerts_dropped_total{app="thanos-rule"}[5m])) > 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Thanos Rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} is failing to queue alerts"
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+      - alert: ThanosRuleSenderIsFailingAlerts
+        expr: sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name) (rate(thanos_alert_sender_alerts_dropped_total{app="thanos-rule"}[5m])) > 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Thanos Rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} is failing to send alerts to alertmanager."
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+      - alert: ThanosNoRuleEvaluations
+        expr: |
+          sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_pod_name) (rate(prometheus_rule_evaluations_total{app="thanos-rule"}[5m])) <= 0
+          and
+          sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_pod_name) (thanos_rule_loaded_rules{app="thanos-rule"}) > 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Thanos Rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} did not perform any rule evaluations in the past 10 minutes."
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+      - alert: ThanosRuleEvaluationLatencyHigh
+        expr: |
+          count by (kubernetes_cluster, kubernetes_namespace, kubernetes_pod_name) (
+            sum by(kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_last_duration_seconds{app="thanos-rule"})
+            >
+            sum by(kubernetes_cluster, kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_interval_seconds{app="thanos-rule"})
+          ) > 5
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Thanos rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} has higher evaluation latency than interval for more then 5 group rules"
+          impact: "Slow evaluation can result in missed evaluations"
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+      - alert: ThanosRuleHighRuleEvaluationFailures
+        expr: |
+          count by (kubernetes_cluster, kubernetes_namespace, kubernetes_pod_name) (
+            sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (rate(prometheus_rule_evaluation_failures_total{app="thanos-rule"}[5m]))
+            / 
+            sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (rate(prometheus_rule_evaluations_total{app="thanos-rule"}[5m]))
+            * 100 > 5
+          ) > 5
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Thanos Rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} is failing to evaluate rules."
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+      - alert: ThanosRuleNoEvaluationFor10Intervals
+        expr: |
+          time() - max by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_last_evaluation_timestamp_seconds{app="thanos-rule"})
+          >
+          10 * max by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_interval_seconds{app="thanos-rule"})
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: Thanos Rule {{$labels.namespace}}/{{$labels.kubernetes_pod_name}} has rule groups that did not evaluate for 10 intervals.
+          description: The rule group {{$labels.rule_group}} did not evaluate for at least 10x of their expected interval.
+          impact: "Alerts are not evaluated hence they wont be fired even if conditions are met"
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
