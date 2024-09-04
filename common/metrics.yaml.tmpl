@@ -79,15 +79,15 @@ groups:
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
       - alert: ThanosRuleNoEvaluationFor10Intervals
         expr: |
-          time() - max by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_last_evaluation_timestamp_seconds{app="thanos-rule"})
+          time() - max by (kubernetes_cluster,kubernetes_namespace, kubernetes_name, rule_group) (prometheus_rule_group_last_evaluation_timestamp_seconds{app="thanos-rule"})
           >
-          10 * max by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name, rule_group) (prometheus_rule_group_interval_seconds{app="thanos-rule"})
+          10 * max by (kubernetes_cluster,kubernetes_namespace, kubernetes_name, rule_group) (prometheus_rule_group_interval_seconds{app="thanos-rule"})
         for: 5m
         labels:
           team: infra
         annotations:
-          summary: Thanos Rule {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} has rule groups that did not evaluate for 10 intervals.
+          summary: Thanos Rule {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}} has rule groups that did not evaluate for 10 intervals.
           description: The rule group {{$labels.rule_group}} did not evaluate for at least 10x of their expected interval.
           impact: "Alerts are not evaluated hence they wont be fired even if conditions are met"
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_name}}.*\"}"}]|link>
