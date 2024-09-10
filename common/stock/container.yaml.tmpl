@@ -6,6 +6,28 @@ groups:
     rules:
       # Set period to 30m to cater to most workloads. Slow crashing containers
       # like `thanos-compact` need to setup a dedicated alert.
+      - alert: DeploymentContainerRestartingOften
+        expr: label_replace((increase(kube_pod_container_status_restarts_total[30m])>3) * on (uid) group_left(created_by_kind,created_by_name) max(kube_pod_info{created_by_kind="ReplicaSet"}) by (uid,created_by_kind,created_by_name), "deployment", "$1", "created_by_name","(.*)-.+")* on (deployment, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_deployment_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: container
+        annotations:
+          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 30m"
+          impact: "Container may be crashlooping and not working as expected"
+          action: "Check pod status and container logs to figure out if there's a problem"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
+      - alert: StatefulsetContainerRestartingOften
+        expr: label_replace((increase(kube_pod_container_status_restarts_total[30m])>3) * on (uid) group_left(created_by_kind,created_by_name) max(kube_pod_info{created_by_kind="StatefulSet"}) by (uid,created_by_kind,created_by_name), "statefulset", "$1", "created_by_name","(.*)")* on (statefulset, namespace) group_left(annotation_app_uw_systems_tier, annotation_app_uw_systems_system, annotation_app_uw_systems_owner) kube_statefulset_annotations * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: container
+        annotations:
+          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 30m"
+          impact: "Container may be crashlooping and not working as expected"
+          action: "Check pod status and container logs to figure out if there's a problem"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
       - alert: ContainerRestartingOften
         expr: (increase(kube_pod_container_status_restarts_total[30m]) > 3) * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
