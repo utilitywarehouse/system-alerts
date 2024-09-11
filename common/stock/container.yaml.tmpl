@@ -43,7 +43,10 @@ groups:
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
       - alert: ContainerRestartingOften
-        expr: (increase(kube_pod_container_status_restarts_total[30m]) > 3) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: |
+          (increase(kube_pod_container_status_restarts_total[30m])> 3)
+          * on (uid) group_left(created_by_kind,created_by_name) max(kube_pod_info{created_by_kind!~"StatefulSet|ReplicaSet"}) by (uid,created_by_kind,created_by_name)
+          * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
           alerttype: stock
           alertgroup: container
