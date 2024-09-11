@@ -42,6 +42,17 @@ groups:
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
+      - alert: ContainerRestartingOften
+        expr: (increase(kube_pod_container_status_restarts_total[30m]) > 3) * on (namespace) group_left(team) uw_namespace_oncall_team
+        labels:
+          alerttype: stock
+          alertgroup: container
+        annotations:
+          summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has restarted more than 3 times in the last 30m"
+          impact: "Container may be crashlooping and not working as expected"
+          action: "Check pod status and container logs to figure out if there's a problem"
+          command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
       # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
       - alert: ContainerCpuThrottled
         expr: ((sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace)) > 0.95) * on (namespace) group_left(team) uw_namespace_oncall_team
