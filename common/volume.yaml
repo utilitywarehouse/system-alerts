@@ -1,16 +1,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: thanos-rule
+  name: prometheus
 spec:
   template:
     spec:
-      initContainers:
-        - name: rule-watcher
-          volumeMounts:
-            - name: rule-templates-common
-              mountPath: /var/thanos/rule-templates/common
       volumes:
-        - name: rule-templates-common
-          configMap:
-            name: alert-templates-common
+        - name: rules-projected
+          projected:
+            sources:
+              - configMap: { name: alert-templates-common }
