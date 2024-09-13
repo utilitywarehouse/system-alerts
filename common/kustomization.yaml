@@ -8,8 +8,9 @@ configMapGenerator:
       - cert-manager.yaml.tmpl
       - daemonset.yaml.tmpl=daemonset.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
-      - metrics.yaml.tmpl
+      - prometheus.yaml.tmpl
       - terraform-applier.yaml.tmpl
+      - thanos.yaml.tmpl
       - vault.yaml.tmpl
 
       - stock/cockroachdb.yaml.tmpl

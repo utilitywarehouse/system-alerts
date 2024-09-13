@@ -1,0 +1,54 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  # https://github.com/prometheus/prometheus/tree/main/documentation/prometheus-mixin
+  - name: prometheus
+    rules:
+      # critical
+      - alert: PrometheusBadConfig
+        expr: |
+          # Without max_over_time, failed scrapes could create false negatives, see
+          # https://www.robustperception.io/alerting-on-gauges-in-prometheus-2-0 for details.
+          max_over_time(prometheus_config_last_reload_successful{job=~"prometheus.*"}[5m]) == 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Prometheus {{$labels.monitor}} has failed to reload its configuration."
+      - alert: PrometheusRuleFailures
+        expr: |
+          increase(prometheus_rule_evaluation_failures_total{job=~"prometheus.*"}[5m]) > 0
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: 'Prometheus {{$labels.monitor}} has failed to evaluate {{ printf "%.0f" $value }} rules in the last 5m.'
+      - alert: PrometheusTargetSyncFailure
+        expr: |
+          increase(prometheus_target_sync_failed_total{job=~"prometheus.*"}[30m]) > 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: '{{ printf "%.0f" $value }} targets in Prometheus {{$labels.monitor}} have failed to sync because invalid configuration was supplied.'
+      # warnings
+      - alert: PrometheusMissingRuleEvaluations
+        expr: |
+          increase(prometheus_rule_group_iterations_missed_total{job=~"prometheus.*"}[5m]) > 0
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: 'Prometheus {{$labels.monitor}} has missed {{ printf "%.0f" $value }} rule group evaluations in the last 15m.'
+      - alert: PrometheusRuleNoEvaluationFor10Intervals
+        expr: |
+          time() - max by (monitor, rule_group) (prometheus_rule_group_last_evaluation_timestamp_seconds{job=~"prometheus.*"})
+          >
+          10 * max by (monitor, rule_group) (prometheus_rule_group_interval_seconds{job=~"prometheus.*"})
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: Prometheus {{$labels.monitor}} has rule groups that did not evaluate for 10 intervals.
+          description: The rule group {{$labels.rule_group}} did not evaluate for at least 10x of their expected interval.
