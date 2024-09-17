@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - cumulus.yaml.tmpl=cumulus.yaml.tmpl
     name: alert-templates-cumulus
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

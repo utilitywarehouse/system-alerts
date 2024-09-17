@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - cis-aws.yaml.tmpl=cis-aws.yaml.tmpl
     name: alert-templates-cis-aws
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

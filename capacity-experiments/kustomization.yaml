@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - capacity-experiments.yaml.tmpl
     name: alert-templates-capacity-experiments
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

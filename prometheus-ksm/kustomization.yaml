@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - prometheus-ksm.yaml.tmpl=prometheus-ksm.yaml.tmpl
     name: alert-templates-prometheus-ksm
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

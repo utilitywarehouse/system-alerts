@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - kube-applier.yaml.tmpl=kube-applier.yaml.tmpl
     name: alert-templates-kube-applier
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

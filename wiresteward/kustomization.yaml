@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - wiresteward.yaml.tmpl
     name: alert-templates-wiresteward
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

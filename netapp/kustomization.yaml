@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - netapp.yaml.tmpl=netapp.yaml.tmpl
     name: alert-templates-netapp
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

@@ -5,6 +5,8 @@ configMapGenerator:
   - files:
       - merit.yaml.tmpl=merit.yaml.tmpl
     name: alert-templates-merit
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml
