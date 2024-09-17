@@ -2,22 +2,25 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
-  - name: TerraformSync
+  - name: terraform-applier-module
     rules:
-      - alert: TerraformApplierErrors
-        expr: (max(terraform_applier_module_last_run_success{run_type!="PullRequestPlan"}) by (module,namespace) == 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+      - alert: TerraformApplierModuleErrors
+        expr: (max(terraform_applier_module_last_run_success{run_type!="PullRequestPlan"}) by (kubernetes_cluster,kubernetes_namespace,module,namespace) == 0) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 10m
         labels:
           alerttype: stock
-          alertgroup: terraform_sync
+          alertgroup: terraform_applier_module
         annotations:
           summary: "Terraform module {{ $labels.module }} in {{ $labels.namespace }} encountered errors during last terraform run"
           description: |
             Some resources may not have been applied.
             to check status run following command:
             `kubectl --context {{$labels.kubernetes_cluster}} -n {{$labels.namespace}} get module {{ $labels.module }}`
-            or visit https://terraform-applier-system.{{$labels.uw_environment}}.{{$labels.cloud_provider}}.uw.systems/
 
+            If the state is locked you can remove the lock with the following command from the root of the module:
+            `terraform force-unlock <lock_id_from_dashboard_output>`
 
             If module is using kube backend and the state is locked you can remove the lock with the following command:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op":"remove","path":"/spec/holderIdentity"}]'`
+          dashboard: <https://terraform-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/#{{$labels.namespace}}-{{$labels.module}}"|link>
+          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\"} |=\"{{$labels.module}}\""}]|link>
