@@ -12,18 +12,9 @@ configMapGenerator:
       - terraform-applier.yaml.tmpl
       - thanos.yaml.tmpl
       - vault.yaml.tmpl
-
-      - stock/cockroachdb.yaml.tmpl
-      - stock/container.yaml.tmpl
-      - stock/elasticsearch.yaml.tmpl
-      - stock/missing_replicas.yaml.tmpl
-      - stock/namespace_sync.yaml.tmpl
-      - stock/storage.yaml.tmpl
-      - stock/team_detection.yaml
-      - stock/terraform_sync.yaml.tmpl
-      - stock/timezone-bst.yaml
-      - stock/vault-clients.yaml.tmpl
     name: alert-templates-common
+    options:
+      disableNameSuffixHash: true
 
 patches:
   - path: volume.yaml

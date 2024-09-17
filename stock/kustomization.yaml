@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+configMapGenerator:
+  - files:
+      - cockroachdb.yaml.tmpl
+      - container.yaml.tmpl
+      - elasticsearch.yaml.tmpl
+      - missing_replicas.yaml.tmpl
+      - namespace_sync.yaml.tmpl
+      - storage.yaml.tmpl
+      - team_detection.yaml
+      - terraform_sync.yaml.tmpl
+      - timezone-bst.yaml
+      - vault-clients.yaml.tmpl
+    name: alert-templates-stock
+    options:
+      disableNameSuffixHash: true
+
+patches:
+  - path: volume.yaml

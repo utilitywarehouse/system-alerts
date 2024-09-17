@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: rule-watcher
+          volumeMounts:
+            - name: rule-templates-stock
+              mountPath: /var/thanos/rule-templates/stock
+      volumes:
+        - name: rule-templates-stock
+          configMap:
+            name: alert-templates-stock
