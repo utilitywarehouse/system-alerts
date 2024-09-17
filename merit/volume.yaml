@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: thanos-rule
+  name: prometheus
 spec:
   template:
     spec:
@@ -9,7 +9,7 @@ spec:
         - name: rule-watcher
           volumeMounts:
             - name: rule-templates-merit
-              mountPath: /var/thanos/rule-templates/merit
+              mountPath: /var/prometheus/rule-templates/merit
       volumes:
         - name: rule-templates-merit
           configMap:
