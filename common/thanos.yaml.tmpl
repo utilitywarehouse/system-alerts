@@ -91,3 +91,21 @@ groups:
           impact: "Alerts are not evaluated hence they wont be fired even if conditions are met"
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/35da848f5f92b2dc612e0c3a0577b8a1/thanos-rule?refresh=5sv"|link>
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_name}}.*\"}"}]|link>
+      - alert: ThanosBucketOperationsFailing
+        expr: |
+          sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_name) (rate(thanos_objstore_bucket_operation_failures_total{}[5m])) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: Thanos bucket operations are failing for 10m in {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}}
+      - alert: ThanosNoUpload
+        expr: |
+          (sum by (kubernetes_name)(up{kubernetes_namespace=~"sys-mon|sys-prom"}) - 1)
+          + on (kubernetes_name)
+          (sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_name) (increase(thanos_shipper_uploads_total{}[3h])) == 0)
+        for: 3h
+        labels:
+          team: infra
+        annotations:
+          summary: Thanos has not uploaded latest data to object storage in {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}}
