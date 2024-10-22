@@ -184,6 +184,25 @@ groups:
 
             To get more info about the issue check the namespace events with the following command:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.resource_namespace }} get events`
+      - alert: KyvernoBackgroundScanCanary
+        expr: increase(kyverno_policy_results_total{rule_name="detect-canary-configmap",rule_execution_cause="background_scan",rule_result="fail"}[1h]) == 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Kyverno background scans canary alert is missing for last 10m"
+          description: |
+            Background checks for rule: {{ $labels.rule_name }} of policy: {{ $labels.policy_name }}
+            is failing to report failures under {{ $labels.resource_namespace }} namespace.
+            This rule is created to always detect and alert on `kyverno-canary-resource` configmap.
+
+            Following troubleshooting steps might help...
+            1) check if `kyverno-canary-resource` configmap exits
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get configmap kyverno-canary-resource`
+            2) check if {{ $labels.policy_name }} policy exists
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get clusterpolicies {{ $labels.policy_name }}`
+            3) make sure background scan is not disabled via flag on `reports controller`
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get deployments kyverno-reports-controller -o yaml`
   - name: thanos
     rules:
       - alert: ThanosCompactHalted
