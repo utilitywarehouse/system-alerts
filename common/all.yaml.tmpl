@@ -49,8 +49,7 @@ groups:
           description: "A number of our critical alerts depend on the metrics produced by kube-state-metrics."
           summary: Metrics from kube-state-metrics are absent
       - alert: NodeNotReady
-        expr:
-          count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
+        expr: count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
         for: $NODE_ROLL_WINDOW
         labels:
           team: infra
@@ -61,21 +60,18 @@ groups:
           summary: Kubernetes node is Not Ready
       - alert: NodeNotReadyAlertInhibitor
         keep_firing_for: 2m
-        expr:
-          count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
+        expr: count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0
         labels:
           team: infra
       - alert: NodeStuckRebooting
-        expr:
-          sum(kured_reboot_required) > 0 and sum(kured_reboot_required) - sum(kured_reboot_required offset 30m) == 0 and ON() hour() > 6 < 18
+        expr: sum(kured_reboot_required) > 0 and sum(kured_reboot_required) - sum(kured_reboot_required offset 30m) == 0 and ON() hour() > 6 < 18
         labels:
           team: infra
         annotations:
           description: Workers require rebooting but no reboots have occurred in the last 30m
           summary: A worker appears to be stuck rebooting
       - alert: RebootRequiredAlertInhibitor
-        expr:
-          sum(kured_reboot_required) > 0
+        expr: sum(kured_reboot_required) > 0
         labels:
           team: infra
       - alert: NodeUnschedulable
@@ -94,26 +90,26 @@ groups:
         annotations:
           description: "{{ $labels.node }} is reporting that it is out of disk space."
           summary: node {{ $labels.node }} has no disk space
-#      - alert: KubernetesHighNodeMemory
-#        expr: ((sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) - ((sum by (instance, kubernetes_cluster) (node_memory_MemAvailable_bytes{job="node-exporter"})))) / sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) * 100 ) > 95
-#        for: 5m
-#        labels:
-#          team: infra
-#        annotations:
-#          description:
-#            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage higer than 95%"
-#          summary: Kubernetes node high memory
-#          value: "{{ $value }}"
-#      - alert: KubernetesHighNodeCPU
-#        expr: (( sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{mode!='idle',job="node-exporter"}[10m])) / sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{job="node-exporter"}[10m]))) * 100 ) > 95
-#        for: 5m
-#        labels:
-#          team: infra
-#        annotations:
-#          description:
-#            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage higher than 95%"
-#          summary: Kubernetes node high cpu
-#          value: "{{ $value }}"
+      #      - alert: KubernetesHighNodeMemory
+      #        expr: ((sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) - ((sum by (instance, kubernetes_cluster) (node_memory_MemAvailable_bytes{job="node-exporter"})))) / sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) * 100 ) > 95
+      #        for: 5m
+      #        labels:
+      #          team: infra
+      #        annotations:
+      #          description:
+      #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage higer than 95%"
+      #          summary: Kubernetes node high memory
+      #          value: "{{ $value }}"
+      #      - alert: KubernetesHighNodeCPU
+      #        expr: (( sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{mode!='idle',job="node-exporter"}[10m])) / sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{job="node-exporter"}[10m]))) * 100 ) > 95
+      #        for: 5m
+      #        labels:
+      #          team: infra
+      #        annotations:
+      #          description:
+      #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage higher than 95%"
+      #          summary: Kubernetes node high cpu
+      #          value: "{{ $value }}"
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
@@ -511,7 +507,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: '{{ $labels.app }} has been requeuing {{ $labels.name }} objects for 10 minutes'
+          summary: "{{ $labels.app }} has been requeuing {{ $labels.name }} objects for 10 minutes"
           description: |
             Items are requeued when an error is encountered during reconcilliation.
 
@@ -522,7 +518,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: '{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes'
+          summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
           description: Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: SemaphoreXDSNoZoneEndpoint
@@ -531,7 +527,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: '{{ $labels.app }} xDS server snapshot advertises endpoints without a locality zone'
+          summary: "{{ $labels.app }} xDS server snapshot advertises endpoints without a locality zone"
           description: xDS server snapshot contains endpoints with locality zone set to none. This is probably due to a missing zone in the respective Kubernetes EndpointSlice.
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: AlertmanagerConfigReloadFailed
