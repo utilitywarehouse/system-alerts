@@ -172,7 +172,7 @@ groups:
   - name: kyverno
     rules:
       - alert: KyvernoBackgroundCheckRuleFailure
-        expr: increase(kyverno_policy_results_total{rule_execution_cause="background_scan", rule_result="fail"}[1h]) > 0
+        expr: increase(kyverno_policy_results_total{rule_execution_cause="background_scan",policy_name!="canary-resources",rule_result="fail"}[1h]) > 0
         labels:
           team: infra
         annotations:
