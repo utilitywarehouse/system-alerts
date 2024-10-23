@@ -185,7 +185,7 @@ groups:
             To get more info about the issue check the namespace events with the following command:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.resource_namespace }} get events`
       - alert: KyvernoBackgroundScanCanary
-        expr: increase(kyverno_policy_results_total{rule_name="detect-canary-configmap",rule_execution_cause="background_scan",rule_result="fail"}[1h]) == 0
+        expr: sum by (kubernetes_cluster,resource_namespace,policy_name,rule_name) (increase(kyverno_policy_results_total{rule_name="detect-canary-configmap",rule_execution_cause="background_scan",rule_result="fail"}[1h])) == 0
         for: 10m
         labels:
           team: infra
