@@ -1,0 +1,85 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+# https://github.com/NetApp/harvest/blob/main/container/prometheus/alert_rules.yml
+groups:
+  - name: netapp-harvest
+    rules:
+      # Alert for any instance that is unreachable for >5 minutes.
+      - alert: NetappHarvestInstanceDown
+        expr: sum by (app,kubernetes_namespace) (up{app="netapp-harvest",kubernetes_namespace=~"kube-system|sys.*"}) == 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Harvest is down in {{ $labels.kubernetes_namespace }} for more than 5 minutes."
+          Impact: "Netapp metrics is not being collected."
+
+      - alert: SVMIsNotRunning
+        expr: svm_labels{type="data",state!="running",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "State of SVM {{$labels.svm}} on netapp {{$labels.cluster}} is not in running mode"
+
+        # Alert for offline aggregate
+      - alert: AggregateStateIsNotOnline
+        expr: aggr_labels{state!="online",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Aggregate [{{ $labels.aggr }}] state is [{{ $labels.state }}]"
+
+      - alert: AggrUsage
+        expr: round(100*sum by (cluster,aggr) (aggr_space_used{kubernetes_namespace=~"kube-system|sys.*"})/sum by (cluster,aggr) (aggr_space_total{kubernetes_namespace=~"kube-system|sys.*"})) >= 90
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Aggregate {{$labels.aggr}} on netapp {{$labels.cluster}} is more than 90% utilised"
+
+        # Alert for disk failure
+      - alert: DiskFailure
+        expr: disk_labels{failed="true",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Disk [{{ $labels.disk }}] in node {{$label.node}} is in failure state"
+
+        # Alert for offline volume
+      - alert: VolumeStateOffline
+        expr: volume_labels{state="offline",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Volume [{{ $labels.volume  }}] in [{{$label.node}}/{{$label.svm}}] is offline"
+
+        # Alert for any instance that has a volume used percentage > 90%
+      - alert: VolumeUsedPercentageBreach
+        expr: volume_size_used_percent{volume!~"trident_pvc_.*",kubernetes_namespace=~"kube-system|sys.*"} > 90
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Volume [{{ $labels.volume }}] in [{{$label.node}}/{{$label.svm}}] is [{{$value}}%] used"
+
+        # Certificates expiring within 1 month
+      - alert: CertificatesExpiring
+        expr: 0 < (security_certificate_expiry_time{kubernetes_namespace=~"kube-system|sys.*"} - time()) < (30*24*3600)
+        for: 1m
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring on [{{ $labels.expiry_time }}]"
+
+        # Certificates expired
+      - alert: CertificatesExpired
+        expr: (security_certificate_expiry_time{kubernetes_namespace=~"kube-system|sys.*"} - time()) < 0
+        labels:
+          team: infra
+        annotations:
+          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired on [{{ $labels.expiry_time }}]"
