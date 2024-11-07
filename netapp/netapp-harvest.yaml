@@ -62,7 +62,7 @@ groups:
         # Alert for any instance that has a volume used percentage > 90%
       - alert: VolumeUsedPercentageBreach
         expr: volume_size_used_percent{volume!~"trident_pvc_.*",kubernetes_namespace=~"kube-system|sys.*"} > 90
-        for: 5m
+        for: 10m
         labels:
           team: infra
         annotations:
@@ -71,7 +71,7 @@ groups:
         # Certificates expiring within 1 month
       - alert: CertificatesExpiring
         expr: 0 < (security_certificate_expiry_time{kubernetes_namespace=~"kube-system|sys.*"} - time()) < (30*24*3600)
-        for: 1m
+        for: 10m
         labels:
           team: infra
         annotations:
