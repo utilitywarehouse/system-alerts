@@ -2,6 +2,7 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 # https://github.com/NetApp/harvest/blob/main/container/prometheus/alert_rules.yml
+# https://github.com/NetApp/harvest/blob/main/container/prometheus/ems_alert_rules.yml
 groups:
   - name: netapp-harvest
     rules:
