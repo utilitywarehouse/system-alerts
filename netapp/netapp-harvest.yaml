@@ -48,7 +48,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Disk [{{ $labels.disk }}] in node {{$label.node}} is in failure state"
+          summary: "Netapp Disk [{{ $labels.disk }}] in node {{$labels.node}} is in failure state"
 
         # Alert for offline volume
       - alert: VolumeStateOffline
@@ -57,7 +57,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Volume [{{ $labels.volume  }}] in [{{$label.node}}/{{$label.svm}}] is offline"
+          summary: "Netapp Volume [{{ $labels.volume  }}] in [{{$labels.node}}/{{$labels.svm}}] is offline"
 
         # Alert for any instance that has a volume used percentage > 90%
       - alert: VolumeUsedPercentageBreach
@@ -66,7 +66,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Volume [{{ $labels.volume }}] in [{{$label.node}}/{{$label.svm}}] is [{{$value}}%] used"
+          summary: "Netapp Volume [{{ $labels.volume }}] in [{{$labels.node}}/{{$labels.svm}}] is [{{$value}}%] used"
 
         # Certificates expiring within 1 month
       - alert: CertificatesExpiring
