@@ -14,7 +14,7 @@ groups:
           summary: "Volume {{$labels.namespace}}/{{$labels.persistentvolumeclaim}} will fill up in 72h"
           impact: "Exhausting available disk space will most likely result in service disruption"
           action: "Investigate disk usage and adjust volume size if necessary."
-          runbook: "https://wiki.uw.systems/posts/how-to-resize-a-stateful-set-volume-claim-1svb2nvt"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/kubernetes/resizing-statefulset-pvc.md"
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=${ENVIRONMENT}-${PROVIDER}&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}|link>
       - alert: VolumeFillingUpin6h
         expr: ((predict_linear(kubelet_volume_stats_available_bytes[1h], 6 * 3600) < 0) and (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.7)) * on (namespace) group_left(team) uw_namespace_oncall_team
@@ -26,5 +26,5 @@ groups:
           summary: "Volume {{$labels.namespace}}/{{$labels.persistentvolumeclaim}} will fill up in 6h"
           impact: "Exhausting available disk space will most likely result in service disruption"
           action: "Investigate disk usage and adjust volume size if necessary."
-          runbook: "https://wiki.uw.systems/posts/how-to-resize-a-stateful-set-volume-claim-1svb2nvt"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/kubernetes/resizing-statefulset-pvc.md"
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=${ENVIRONMENT}-${PROVIDER}&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}|link>
