@@ -8,7 +8,7 @@ groups:
     rules:
       # Alert for any instance that is unreachable for >5 minutes.
       - alert: NetappHarvestInstanceDown
-        expr: sum by (app,kubernetes_namespace) (up{app="netapp-harvest",kubernetes_namespace=~"kube-system|sys.*"}) == 0
+        expr: sum by (app,kubernetes_namespace) (up{app="netapp-harvest",kubernetes_namespace="sys-prom"}) == 0
         for: 5m
         labels:
           team: infra
@@ -17,7 +17,7 @@ groups:
           Impact: "Netapp metrics is not being collected."
 
       - alert: SVMIsNotRunning
-        expr: svm_labels{type="data",state!="running",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        expr: svm_labels{type="data",state!="running",kubernetes_namespace="sys-prom"} == 1
         for: 5m
         labels:
           team: infra
@@ -26,7 +26,7 @@ groups:
 
         # Alert for offline aggregate
       - alert: AggregateStateIsNotOnline
-        expr: aggr_labels{state!="online",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        expr: aggr_labels{state!="online",kubernetes_namespace="sys-prom"} == 1
         for: 5m
         labels:
           team: infra
@@ -34,7 +34,7 @@ groups:
           summary: "Netapp Aggregate [{{ $labels.aggr }}] state is [{{ $labels.state }}]"
 
       - alert: AggrUsage
-        expr: round(100*sum by (cluster,aggr) (aggr_space_used{kubernetes_namespace=~"kube-system|sys.*"})/sum by (cluster,aggr) (aggr_space_total{kubernetes_namespace=~"kube-system|sys.*"})) >= 90
+        expr: round(100*sum by (cluster,aggr) (aggr_space_used{kubernetes_namespace="sys-prom"})/sum by (cluster,aggr) (aggr_space_total{kubernetes_namespace="sys-prom"})) >= 90
         for: 10m
         labels:
           team: infra
@@ -43,7 +43,7 @@ groups:
 
         # Alert for disk failure
       - alert: DiskFailure
-        expr: disk_labels{failed="true",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        expr: disk_labels{failed="true",kubernetes_namespace="sys-prom"} == 1
         for: 5m
         labels:
           team: infra
@@ -52,7 +52,7 @@ groups:
 
         # Alert for offline volume
       - alert: VolumeStateOffline
-        expr: volume_labels{state="offline",kubernetes_namespace=~"kube-system|sys.*"} == 1
+        expr: volume_labels{state="offline",kubernetes_namespace="sys-prom"} == 1
         for: 5m
         labels:
           team: infra
@@ -60,17 +60,16 @@ groups:
           summary: "Netapp Volume [{{ $labels.volume  }}] in [{{$labels.node}}/{{$labels.svm}}] is offline"
 
         # Alert for any instance that has a volume used percentage > 90%
-      - alert: VolumeUsedPercentageBreach
-        expr: volume_size_used_percent{volume!~"trident_pvc_.*",kubernetes_namespace=~"kube-system|sys.*"} > 90
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          summary: "Netapp Volume [{{ $labels.volume }}] in [{{$labels.node}}/{{$labels.svm}}] is [{{$value}}%] used"
-
-        # Certificates expiring within 1 month
+      # - alert: VolumeUsedPercentageBreach
+      #   expr: volume_size_used_percent{volume!~"trident_pvc_.*",kubernetes_namespace="sys-prom"} > 90
+      #   for: 10m
+      #   labels:
+      #     team: infra
+      #   annotations:
+      #     summary: "Netapp Volume [{{ $labels.volume }}] in [{{$labels.node}}/{{$labels.svm}}] is [{{$value}}%] used"
+      # Certificates expiring within 1 month
       - alert: CertificatesExpiring
-        expr: 0 < (security_certificate_expiry_time{kubernetes_namespace=~"kube-system|sys.*"} - time()) < (30*24*3600)
+        expr: 0 < (security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < (30*24*3600)
         for: 10m
         labels:
           team: infra
@@ -79,7 +78,7 @@ groups:
 
         # Certificates expired
       - alert: CertificatesExpired
-        expr: (security_certificate_expiry_time{kubernetes_namespace=~"kube-system|sys.*"} - time()) < 0
+        expr: (security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < 0
         labels:
           team: infra
         annotations:
