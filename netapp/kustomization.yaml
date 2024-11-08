@@ -3,7 +3,6 @@ kind: Component
 
 configMapGenerator:
   - files:
-      - netapp.yaml.tmpl=netapp.yaml.tmpl
       - netapp-harvest.yaml=netapp-harvest.yaml
     name: alert-templates-netapp
 
