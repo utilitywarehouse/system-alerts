@@ -186,16 +186,16 @@ groups:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.resource_namespace }} get events`
       - alert: KyvernoBackgroundScanCanary
         expr: sum by (kubernetes_cluster,resource_namespace,policy_name,rule_name) (increase(kyverno_policy_results_total{rule_name="detect-canary-configmap",rule_execution_cause="background_scan",rule_result="fail"}[1h])) == 0
-        for: 10m
+        for: 1h10m
         labels:
           team: infra
         annotations:
-          summary: "Kyverno background scans canary alert is missing for last 10m"
+          summary: "Kyverno background scans canary alert is missing for more then 1h"
           description: |
             Background checks for rule: {{ $labels.rule_name }} of policy: {{ $labels.policy_name }}
             is failing to report failures under {{ $labels.resource_namespace }} namespace.
             This rule is created to always detect and alert on `kyverno-canary-resource` configmap.
-
+          action: |
             Following troubleshooting steps might help...
             1) check if `kyverno-canary-resource` configmap exits
             `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get configmap kyverno-canary-resource`
