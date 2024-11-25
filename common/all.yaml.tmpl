@@ -511,14 +511,12 @@ groups:
 
             If requeued items are not being processed promptly then this indicates a persistent issue. The mirror services are likely to be in an incorrect state.
       - alert: SemaphoreServiceMirrorKubeClientErrors
-        expr: increase(semaphore_service_mirror_kube_http_request_total{code!="200"}[5m]) > 0
-        for: 10m
+        expr: sum(rate(semaphore_service_mirror_kube_http_request_total{code!="200"}[10m])) / sum(rate(semaphore_service_mirror_kube_http_request_total[10m])) > 0.1
+        for: 5m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
-          description: |
-            Kubernetes client requests returning code different than 200 for longer than 10 minutes. Check the pods logs for further information.
+          summary: "{{ $labels.app }} more then 10% of APIServer requests are failing"
           logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>
       - alert: SemaphoreXDSRequeued
         expr: semaphore_xds_queue_requeued_items > 0
