@@ -22,6 +22,6 @@ groups:
 
             If module is using kube backend and the state is locked you can remove the lock with the following command:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch lease lock-tfstate-default-{{ $labels.module }} --type=json -p='[{"op":"remove","path":"/spec/holderIdentity"}]'`
-          dashboard: <https://terraform-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/#{{$labels.namespace}}-{{$labels.module}}"|link>
+          dashboard: <https://terraform-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/#{{$labels.namespace}}-{{$labels.module}}|link>
           logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\"} |=\"{{$labels.module}}\""}]'
           tf_applier: "https://terraform-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/"
