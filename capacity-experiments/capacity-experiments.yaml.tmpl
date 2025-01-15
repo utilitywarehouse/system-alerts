@@ -11,7 +11,7 @@ groups:
           team: infra
         annotations:
           summary: "AZ {{ $labels.zone}} is running out of memory for pods"
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization"|link>
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization|link>
       - alert: AvailabilityZoneRunningOutOfMemory99for10m
         expr: avg(node_memory_working_set_bytes/on(node)(kube_node_status_capacity{resource="memory"} - on (node) node_eviction_threshold) * on(node) group_left(zone) kube_node_labels{role="worker"}) by (zone) > 0.99
         for: 10m
