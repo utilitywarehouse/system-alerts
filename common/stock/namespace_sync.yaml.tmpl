@@ -42,13 +42,13 @@ groups:
           action: "Check the web UI / logs for errors."
           link: https://argocd-system.$ENVIRONMENT.$PROVIDER.uw.systems/applications/{{$labels.namespace}}/{{$labels.name}}
       - alert: KubeApplierErrors
-        expr: '(kube_applier_last_run_success != 1) * on (namespace) group_left(team) uw_namespace_oncall_team'
+        expr: "(kube_applier_last_run_success != 1) * on (namespace) group_left(team) uw_namespace_oncall_team"
         for: 1h10m
         labels:
           alerttype: stock
           alertgroup: namespace_sync
         annotations:
           summary: "kube-applier encountered errors while applying {{ $labels.namespace }}"
-          impact: 'Some manifest won't be automatically deployed.'
+          impact: "Some manifest won't be automatically deployed."
           action: "Check the web UI / logs for errors."
           link: https://kube-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/
