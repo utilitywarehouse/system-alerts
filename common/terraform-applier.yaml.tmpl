@@ -5,7 +5,7 @@ groups:
   - name: terraform-applier
     rules:
       - alert: TerraformApplierWorkqueueNotDrained
-        expr: workqueue_depth{name="module"} > 0
+        expr: 'workqueue_depth{name="module"} > 0'
         for: 20m
         labels:
           team: infra
@@ -17,15 +17,15 @@ groups:
             Please also collect `goroutine` info before restart for debugging the issue.
             `https://terraform-applier-system.$ENVIRONMENT.$PROVIDER.uw.systems/debug/pprof/goroutine?debug=1`
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.kubernetes_namespace }} rollout restart sts {{ $labels.kubernetes_name }}`"
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
       - alert: TerraformApplierGitMirrorError
-        expr: time() - max by (repo) (terraform_applier_git_last_mirror_timestamp{}) > 600
+        expr: "time() - max by (repo) (terraform_applier_git_last_mirror_timestamp{}) > 600"
         for: 10m
         labels:
           team: infra
         annotations:
           summary: "terraform-applier has not been able to fetch {{ $labels.repo }} repository in the last 10m"
           impact: "terraform-applier will not be running modules from this repository"
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"$ENVIRONMENT-$PROVIDER\",kubernetes_namespace=\"sys-terraform-applier\"}"}]|link>
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"$ENVIRONMENT-$PROVIDER\",kubernetes_namespace=\"sys-terraform-applier\"}"}]|link>'

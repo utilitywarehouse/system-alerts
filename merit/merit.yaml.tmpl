@@ -5,54 +5,54 @@ groups:
   - name: http-probe
     rules:
       - alert: HttpEndpointUnreachable
-        expr: probe_success{job="http-endpoint-check"} == 0
+        expr: 'probe_success{job="http-endpoint-check"} == 0'
         for: 5m
         labels:
           team: infra
         annotations:
           description: "{{ $labels.instance }} has been down for more than 5 minutes."
-          summary: http endpoint is not reachable from merit cluster
+          summary: "http endpoint is not reachable from merit cluster"
   - name: nat
     rules:
       - alert: NATNodeDown
-        expr: up{job="node-exporter-static", instance=~"nat.*"} != 1 or absent(up{job="node-exporter-static", instance=~"nat.*"})
+        expr: 'up{job="node-exporter-static", instance=~"nat.*"} != 1 or absent(up{job="node-exporter-static", instance=~"nat.*"})'
         for: 10m
         labels:
           team: infra
         annotations:
           description: "{{ $labels.instance }} reports down more than 10 minutes."
-          summary: NAT node exporter job down
+          summary: "NAT node exporter job down"
       - alert: NATNotHealthy
-        expr: bgp_lb_path_advertisement{job="nat-bgp", prefix="0.0.0.0", prefix_length="0"} != 1
+        expr: 'bgp_lb_path_advertisement{job="nat-bgp", prefix="0.0.0.0", prefix_length="0"} != 1'
         for: 10m
         labels:
           team: infra
         annotations:
           description: "Internet access has not been advertised via {{ $labels.next_hop }} from instance {{ $labels.instance }} for more than 10 minutes."
-          summary: NAT not advertising internet access
+          summary: "NAT not advertising internet access"
       - alert: NATBGPDaemonDown
-        expr: up{job="nat-bgp"} != 1
+        expr: 'up{job="nat-bgp"} != 1'
         for: 10m
         labels:
           team: infra
         annotations:
           description: "Cannot get metrics from {{ $labels.instance }} bgp daemon for more than 10 minutes."
-          summary: NAT BGP daemon down
+          summary: "NAT BGP daemon down"
   - name: matchbox
     rules:
       - alert: MatchboxNodeDown
-        expr: up{job="node-exporter-static", instance=~"matchbox.*"} != 1 or absent(up{job="node-exporter-static", instance=~"matchbox.*"})
+        expr: 'up{job="node-exporter-static", instance=~"matchbox.*"} != 1 or absent(up{job="node-exporter-static", instance=~"matchbox.*"})'
         for: 15m
         labels:
           team: infra
         annotations:
           description: "{{ $labels.instance }} reports down more than 15 minutes."
-          summary: Matchbox node exporter job down
+          summary: "Matchbox node exporter job down"
       - alert: MatchboxHTTPDown
-        expr: probe_success{job="matchbox-http"} != 1
+        expr: 'probe_success{job="matchbox-http"} != 1'
         for: 15m
         labels:
           team: infra
         annotations:
           description: "Matchbox http endpoint has been down on {{ $labels.instance }} for more than 15 minutes."
-          summary: Matchbox http endpoint is down
+          summary: "Matchbox http endpoint is down"

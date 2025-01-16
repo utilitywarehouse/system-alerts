@@ -5,7 +5,7 @@ groups:
   - name: cert-manager
     rules:
       - alert: CertificatePastRenewalTime
-        expr: certmanager_certificate_renewal_timestamp_seconds{namespace=~"kube-system|sys.*"} - time() < 0
+        expr: 'certmanager_certificate_renewal_timestamp_seconds{namespace=~"kube-system|sys.*"} - time() < 0'
         for: 15m
         labels:
           team: infra
