@@ -16,7 +16,7 @@ groups:
           description:
             "{{ $labels.instance }} Promtail service has been down for
             more than 10 minutes."
-          summary: Cumulus Promtail service is down
+          summary: "Cumulus Promtail service is down"
       - alert: CumulusDown
         expr: |
           up{job="node-exporter-static", instance=~"cumulus-.*.:9100"} != 1
@@ -26,7 +26,5 @@ groups:
         labels:
           team: infra
         annotations:
-          description:
-            Cumulus target "{{ $labels.instance }} has been down for
-            more than 10 minutes."
-          summary: Cumulus is down
+          description: "Cumulus target {{ $labels.instance }} has been down for more than 10 minutes."
+          summary: "Cumulus is down"

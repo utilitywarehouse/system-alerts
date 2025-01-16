@@ -6,7 +6,7 @@ groups:
     rules:
       - alert: DaemonsetMissingReplicas
         # Alert if there are unhealthy replicas and the ds is not updating it's replicas
-        expr: ((kube_daemonset_status_number_ready != kube_daemonset_status_desired_number_scheduled) and (changes(kube_daemonset_status_updated_number_scheduled[10m]) == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: "((kube_daemonset_status_number_ready != kube_daemonset_status_desired_number_scheduled) and (changes(kube_daemonset_status_updated_number_scheduled[10m]) == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team"
         for: $NODE_ROLL_WINDOW
         labels:
           team: infra
@@ -17,7 +17,7 @@ groups:
           action: "Check why some replicas are not healthy"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe daemonset {{ $labels.daemonset }}`"
       - alert: DaemonsetMissingAllReplicas
-        expr: (kube_daemonset_status_number_ready == 0 and kube_daemonset_status_desired_number_scheduled != 0) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: "(kube_daemonset_status_number_ready == 0 and kube_daemonset_status_desired_number_scheduled != 0) * on (namespace) group_left(team) uw_namespace_oncall_team"
         for: $NODE_ROLL_WINDOW
         labels:
           team: infra

@@ -15,7 +15,7 @@ groups:
       # 3. Oct, days till last Sunday
       # 4. Oct, till 01:00 GMT & March, from 01:00 GMT
       - record: utility:is_summer_time_bst
-        expr: (vector(1) and (month() > 3 and month() < 10))
+        expr: '(vector(1) and (month() > 3 and month() < 10))'
           or
           (vector(1) and (month() == 3 and (day_of_month() - day_of_week()) >= 25) and absent((day_of_month() >= 25) and (day_of_week() == 0)))
           or
@@ -25,12 +25,12 @@ groups:
           or
           vector(0)
       - record: utility:time_bst
-        expr: time() + 3600 * utility:is_summer_time_bst
+        expr: 'time() + 3600 * utility:is_summer_time_bst'
       - record: utility:hour_bst
-        expr: hour(utility:time_bst)
+        expr: 'hour(utility:time_bst)'
       - record: utility:minute_bst
-        expr: minute(utility:time_bst)
+        expr: 'minute(utility:time_bst)'
       - record: utility:day_of_week_bst
-        expr: day_of_week(utility:time_bst)
+        expr: 'day_of_week(utility:time_bst)'
       - record: utility:is_weekday_bst
-        expr: (vector(1) and (utility:day_of_week_bst > 0) and (utility:day_of_week_bst < 6)) or vector(0)
+        expr: '(vector(1) and (utility:day_of_week_bst > 0) and (utility:day_of_week_bst < 6)) or vector(0)'

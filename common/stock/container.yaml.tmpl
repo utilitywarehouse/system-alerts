@@ -19,7 +19,7 @@ groups:
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>'
       # Set period to 30m to cater to most workloads. Slow crashing containers
       # like `thanos-compact` need to setup a dedicated alert.
       - alert: DeploymentContainerRestartingOften
@@ -38,7 +38,7 @@ groups:
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>'
       # Set period to 30m to cater to most workloads. Slow crashing containers
       # like `thanos-compact` need to setup a dedicated alert.
       - alert: StatefulsetContainerRestartingOften
@@ -57,10 +57,10 @@ groups:
           impact: "Container may be crashlooping and not working as expected"
           action: "Check pod status and container logs to figure out if there's a problem"
           command: "`kubectl --context $ENVIRONMENT-$PROVIDER --namespace {{ $labels.namespace }} describe pod {{ $labels.pod }}`"
-          logs: <https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",kubernetes_container=\"{{ $labels.container }}\"}"}]|link>'
       # https://github.com/kubernetes-monitoring/kubernetes-mixin/issues/108#issuecomment-432796867
       - alert: ContainerCpuThrottled
-        expr: ((sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace)) > 0.95) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: "((sum(increase(container_cpu_cfs_throttled_periods_total[5m])) by (container, pod, namespace) / sum(increase(container_cpu_cfs_periods_total[5m])) by (container, pod, namespace)) > 0.95) * on (namespace) group_left(team) uw_namespace_oncall_team"
         for: 15m
         labels:
           alerttype: stock
@@ -69,9 +69,9 @@ groups:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} is being CPU throttled."
           impact: "Container might take longer than normal to respond to requests."
           action: "Investigate CPU consumption and adjust pods resources if needed."
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}|link>
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}|link>"
       - alert: ContainerOOMing
-        expr: (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) (kube_pod_container_status_ready == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: '(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) (kube_pod_container_status_ready == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team'
         for: 5m
         labels:
           alerttype: stock
@@ -80,9 +80,9 @@ groups:
           summary: "Container {{$labels.namespace}}/{{$labels.pod}}/{{$labels.container}} has been OOMKilled recently and it's not ready"
           impact: "Container not ready, may affect service uptime"
           action: "Investigate memory consumption and adjust container resources"
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}|link>
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}|link>"
       - alert: ContainerWaiting
-        expr: (kube_pod_container_status_waiting{} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team
+        expr: "(kube_pod_container_status_waiting{} == 1) * on (namespace) group_left(team) uw_namespace_oncall_team"
         for: 20m
         labels:
           alerttype: stock

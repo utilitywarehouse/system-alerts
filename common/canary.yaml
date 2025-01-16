@@ -7,4 +7,4 @@ groups:
     rules:
       # The alert is dummy, will never trigger
       - alert: DummyCanary
-        expr: vector(1) == 0
+        expr: "vector(1) == 0"
