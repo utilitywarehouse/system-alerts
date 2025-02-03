@@ -512,7 +512,7 @@ groups:
             If requeued items are not being processed promptly then this indicates a persistent issue. The mirror services are likely to be in an incorrect state.
       - alert: SemaphoreServiceMirrorKubeClientErrors
         expr: 'sum(rate(semaphore_service_mirror_kube_http_request_total{code!~"2.."}[10m])) / sum(rate(semaphore_service_mirror_kube_http_request_total[10m])) > 0.1'
-        for: 5m
+        for: 15m
         labels:
           team: infra
         annotations:
@@ -531,11 +531,11 @@ groups:
             If requeued items are not being processed promptly then this indicates a persistent issue. The xDS configuration served to clients is likely to be in an incorrect state.
       - alert: SemaphoreXDSKubeClientErrors
         expr: 'increase(semaphore_xds_kube_http_request_total{code!~"2.."}[5m]) > 0'
-        for: 10m
+        for: 15m
         labels:
           team: infra
         annotations:
-          summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 10 minutes"
+          summary: "{{ $labels.app }} kubernetes client reports errors speaking to apiserver at {{ $labels.host }} for more than 15 minutes"
           description: "Kubernetes client requests returning code different than 2xx for longer than 10 minutes. Check the pods logs for further information."
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>'
       - alert: SemaphoreXDSNoZoneEndpoint
