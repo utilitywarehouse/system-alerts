@@ -61,14 +61,6 @@ groups:
             The exporter runs as a sidecar and should be able to connect to port 8200 on localhost.
           summary: "Vault exporter for '{{ $labels.kubernetes_pod_name }}' cannot talk to Vault."
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
-      - alert: VaultServerUnreachable
-        expr: 'probe_success{job="vault-server"} == 0'
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          description: "{{ $labels.instance }} has been down for more than 5 minutes."
-          summary: "Vault server is not reachable."
       - alert: VaultServerBlackboxTargetDown
         expr: 'up{job="vault-server"} != 1'
         for: 10m
