@@ -14,6 +14,8 @@ groups:
           summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} is past renewal time"
           logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"kube-system\",kubernetes_container=\"cert-manager-controller\"} |=\"{{$labels.name}}\""}]'
           runbook: "https://cert-manager.io/docs/faq/#what-happens-if-issuance-fails-will-it-be-retried"
+          # command in action mimics behaviour of `cmctl renew`
+          # https://github.com/cert-manager/cmctl/blob/main/pkg/renew/renew.go#L216-L224
           action: |
             Current cert might be still valid so try manual renewal using following command
             ```
