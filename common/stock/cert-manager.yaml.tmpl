@@ -1,0 +1,25 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: cert-manager
+    rules:
+      - alert: CertificatePastRenewalTime
+        expr: "(certmanager_certificate_renewal_timestamp_seconds{} - time() < 0) * on (namespace) group_left(team) uw_namespace_oncall_team"
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: cert-manager
+        annotations:
+          summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} is past renewal time"
+          logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"kube-system\",kubernetes_container=\"cert-manager-controller\"} |=\"{{$labels.name}}\""}]'
+          runbook: "https://cert-manager.io/docs/faq/#what-happens-if-issuance-fails-will-it-be-retried"
+          action: |
+            Current cert might be still valid so try manual renewal using following command
+            ```
+            generation=$(kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get certificate {{ $labels.name }} -o yaml | grep generation | awk '{print $2}')
+            patch='{"status": {"conditions": [{"observedGeneration": '"$generation"',"lastTransitionTime": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'","message": "Manual re-issuance triggered","reason": "ManuallyTriggered","status": "True","type": "Issuing"}]}}'
+            kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch certificate {{ $labels.name }} --type=merge --subresource status --patch "$patch"
+            ```
+            If it appears the issuance has got stuck and manual renew does not work you can delete the latest `CertificateRequest` of the cert from {{ $labels.namespace }} namespace
+            `k --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get certificaterequests`
