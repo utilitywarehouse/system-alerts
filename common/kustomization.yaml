@@ -5,7 +5,6 @@ configMapGenerator:
   - files:
       - all.yaml.tmpl=all.yaml.tmpl
       - canary.yaml
-      - cert-manager.yaml.tmpl
       - daemonset.yaml.tmpl=daemonset.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
       - prometheus.yaml.tmpl
@@ -13,6 +12,7 @@ configMapGenerator:
       - thanos.yaml.tmpl
       - vault.yaml.tmpl
 
+      - stock/cert-manager.yaml.tmpl
       - stock/cockroachdb.yaml.tmpl
       - stock/container.yaml.tmpl
       - stock/elasticsearch.yaml.tmpl
