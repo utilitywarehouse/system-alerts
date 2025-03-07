@@ -6,14 +6,14 @@
 groups:
   - name: netapp-harvest
     rules:
-      # Alert for any instance that is unreachable for >5 minutes.
+      # Alert for any instance that is unreachable for >10 minutes.
       - alert: NetappHarvestInstanceDown
         expr: 'sum by (app,kubernetes_namespace) (up{app="netapp-harvest",kubernetes_namespace="sys-prom"}) == 0'
-        for: 5m
+        for: 10m
         labels:
           team: infra
         annotations:
-          summary: "Netapp Harvest is down in {{ $labels.kubernetes_namespace }} for more than 5 minutes."
+          summary: "Netapp Harvest is down in {{ $labels.kubernetes_namespace }} for more than 10 minutes."
           Impact: "Netapp metrics is not being collected."
 
       - alert: SVMIsNotRunning
