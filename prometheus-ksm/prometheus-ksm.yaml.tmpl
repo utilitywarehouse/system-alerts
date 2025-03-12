@@ -10,6 +10,7 @@ groups:
       # deployment/sts missing replicas, so prometheus-ksm needs to be checked
       # explicitly. The other prometheus would be covered by the missing
       # replica alerts of prometheus-ksm
+
       - alert: PrometheusKsmIsDown
         expr: 'up{job="prometheus-ksm"} == 0 or absent(up{job="prometheus-ksm"})'
         for: 10m
