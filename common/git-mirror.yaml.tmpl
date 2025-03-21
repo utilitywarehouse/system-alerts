@@ -1,0 +1,26 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: gitMirror
+    rules:
+      - alert: GitMirrorConfigReloadFailed
+        # Without max_over_time, failed scrapes could create false negatives
+        expr: 'max_over_time(git_mirror_config_last_reload_successful{kubernetes_namespace=~"kube-system|sys-.*"}[5m]) == 0'
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "git-mirror {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} config reload unsuccessful"
+          description: "Git Mirror config reload has failed, please check the config is valid."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/degf9y0h4vwu8f/git-mirror?orgId=1&from=now-12h&to=now&timezone=browser&var-cluster=$__all&var-namespace={{$labels.kubernetes_namespace}}&var-pod={{$labels.kubernetes_pod_name}}|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"git-mirror\"}"}]|link>'
+      - alert: GitMirrorGitFetchError
+        expr: 'time() - max by (kubernetes_namespace,kubernetes_pod_name,repo) (git_last_mirror_timestamp{kubernetes_namespace=~"kube-system|sys-.*"}) > 600'
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "git-mirror {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} has not been able to fetch {{ $labels.repo }} repository in the last 10m"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/degf9y0h4vwu8f/git-mirror?orgId=1&from=now-12h&to=now&timezone=browser&var-cluster=$__all&var-namespace={{$labels.kubernetes_namespace}}&var-pod={{$labels.kubernetes_pod_name}}|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"git-mirror\"}"}]|link>'
