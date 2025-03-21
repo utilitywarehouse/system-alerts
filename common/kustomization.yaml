@@ -6,6 +6,7 @@ configMapGenerator:
       - all.yaml.tmpl=all.yaml.tmpl
       - canary.yaml
       - daemonset.yaml.tmpl=daemonset.yaml.tmpl
+      - git-mirror.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
       - prometheus.yaml.tmpl
       - terraform-applier.yaml.tmpl
