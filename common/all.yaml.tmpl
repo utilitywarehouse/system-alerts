@@ -90,26 +90,26 @@ groups:
         annotations:
           description: "{{ $labels.node }} is reporting that it is out of disk space."
           summary: "node {{ $labels.node }} has no disk space"
-      #      - alert: KubernetesHighNodeMemory
-      #        expr: '((sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) - ((sum by (instance, kubernetes_cluster) (node_memory_MemAvailable_bytes{job="node-exporter"})))) / sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) * 100 ) > 95'
-      #        for: 5m
-      #        labels:
-      #          team: infra
-      #        annotations:
-      #          description:
-      #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage higer than 95%"
-      #          summary: 'Kubernetes node high memory'
-      #          value: "{{ $value }}"
-      #      - alert: KubernetesHighNodeCPU
-      #        expr: '(( sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{mode!='idle',job="node-exporter"}[10m])) / sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{job="node-exporter"}[10m]))) * 100 ) > 95'
-      #        for: 5m
-      #        labels:
-      #          team: infra
-      #        annotations:
-      #          description:
-      #            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage higher than 95%"
-      #          summary: 'Kubernetes node high cpu'
-      #          value: "{{ $value }}"
+      - alert: NodeHighMemory
+        expr: '((sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) - ((sum by (instance, kubernetes_cluster) (node_memory_MemAvailable_bytes{job="node-exporter"})))) / sum by (instance, kubernetes_cluster) (node_memory_MemTotal_bytes{job="node-exporter"}) * 100 ) > 95'
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          description:
+            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage over 95%"
+          summary: 'Kubernetes Node high memory'
+          value: "{{ $value }}"
+      - alert: NodeHighCPU
+        expr: '(( sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{mode!="idle",job="node-exporter"}[10m])) / sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{job="node-exporter"}[10m]))) * 100 ) > 95'
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          description:
+            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage over 95%"
+          summary: 'Kubernetes Node high cpu'
+          value: "{{ $value }}"
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
