@@ -1,0 +1,28 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: CronJob
+    rules:
+      - alert: CronJobLate
+        expr: |
+          (
+            # Condition 1: A schedule occurred with no subsequent success
+            kube_cronjob_status_last_schedule_time{} > kube_cronjob_status_last_successful_time{}
+
+            # Condition 2: This state has persisted >24h
+            and
+            (time() - kube_cronjob_status_last_schedule_time{} > 86400)
+
+            # Optional: Job isn't suspended
+            and
+            (kube_cronjob_spec_suspend{} == 0)
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team{}
+        labels:
+          alerttype: stock
+          alertgroup: cronjob
+        annotations:
+          summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} failed to run within 24h of being scheduled"
+          command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
+          logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",cronjob=\"{{ $labels.cronjob }}\"}"}]|link>'
