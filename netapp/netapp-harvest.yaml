@@ -70,11 +70,10 @@ groups:
         # Certificates expiring within 1 month
       - alert: CertificatesExpiring
         expr: '0 < (security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < (30*24*3600)'
-        for: 10m
         labels:
           team: infra
         annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring on [{{ $labels.expiry_time }}]"
+          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring on [{{ $value | humanizeDuration }}]"
 
         # Certificates expired
       - alert: CertificatesExpired
@@ -82,4 +81,4 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired on [{{ $labels.expiry_time }}]"
+          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired on [{{ $value | humanizeDuration }}]"
