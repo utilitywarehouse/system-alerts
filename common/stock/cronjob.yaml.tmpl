@@ -1,0 +1,55 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: CronJob
+    rules:
+      - alert: CronJobLate
+        expr: |
+          (
+            # Condition 1: A schedule occurred with no subsequent success
+            kube_cronjob_status_last_schedule_time{} > kube_cronjob_status_last_successful_time{}
+
+            # Condition 2: This state has persisted >24h
+            and
+            (time() - kube_cronjob_status_last_schedule_time{} > 86400)
+
+            # Optional: Job isn't suspended
+            and
+            (kube_cronjob_spec_suspend{} == 0)
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team{}
+        labels:
+          alerttype: stock
+          alertgroup: cronjob
+        annotations:
+          summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} failed to run within 24h of being scheduled"
+          command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
+          logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",cronjob=\"{{ $labels.cronjob }}\"}"}]|link>'
+      - alert: CronJobFailed
+        expr: |
+          # alert if start time of failed job is after latest shedule time of cronjob
+          (
+            # get latest shedule time of active cronjob
+            max by (kubernetes_cluster,namespace, cronjob) (kube_cronjob_status_last_schedule_time{} + on (cronjob) group_left() (kube_cronjob_spec_suspend == 0))
+            <=
+            (
+            # get start time of the lastest failed job which is created from CJ
+            max without (owner_name) (label_replace(
+                max by (kubernetes_cluster,namespace, owner_name) (
+                  
+                  (kube_job_status_start_time * on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_failed{condition="true"} == 1))
+                  * on (job_name) group_left(owner_name) kube_job_owner{owner_kind="CronJob"}
+                )
+              ,
+              "cronjob", "$1", "owner_name", "(.+)"))
+            )
+          )
+          * on (namespace) group_left(team) uw_namespace_oncall_team{}
+        labels:
+          alerttype: stock
+          alertgroup: cronjob
+        annotations:
+          summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} has failed"
+          command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
+          logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",cronjob=\"{{ $labels.cronjob }}\"}"}]|link>'
