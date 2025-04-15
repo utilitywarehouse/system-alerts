@@ -73,7 +73,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring on [{{ $value | humanizeTimestamp }}]"
+          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring in [{{ $value | humanizeDuration }}]"
 
         # Certificates expired
       - alert: CertificatesExpired
@@ -81,4 +81,4 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired on [{{ $value | humanizeTimestamp }}]"
+          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired [{{ $value | humanizeDuration }}] ago"
