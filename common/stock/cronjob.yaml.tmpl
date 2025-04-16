@@ -38,14 +38,14 @@ groups:
             max without (owner_name) (label_replace(
                 # get start time of the last failed jobs
                 max by (kubernetes_cluster,namespace, owner_name) (
-                  (max by (kubernetes_cluster,namespace,job_name) (kube_job_status_start_time) * on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_failed{condition="true"} == 1))
+                  (kube_job_status_start_time * on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_failed{condition="true"} == 1))
                   * on (job_name) group_left(owner_name) kube_job_owner{owner_kind="CronJob"}
                 )
                 ==
                 # get start time of the latest completed jobs
                 # this check is needed as manually created jobs from CJ doesn't get registered in CJ's last schedule time 
                 max by (kubernetes_cluster,namespace, owner_name) (
-                  (max by (kubernetes_cluster,namespace,job_name) (kube_job_status_start_time) + on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_status_active == 0))
+                  (kube_job_status_start_time + on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_status_active == 0))
                   * on (job_name) group_left(owner_name) kube_job_owner{owner_kind="CronJob"}
                 )
               ,
