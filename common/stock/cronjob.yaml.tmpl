@@ -28,17 +28,24 @@ groups:
           logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",cronjob=\"{{ $labels.cronjob }}\"}"}]|link>'
       - alert: CronJobFailed
         expr: |
-          # alert if start time of failed job is after latest shedule time of cronjob
+          # alert if start time of failed job is after latest schedule time of cronjob
           (
-            # get latest shedule time of active cronjob
+            # get latest schedule time of active cronjob
             max by (kubernetes_cluster,namespace, cronjob) (kube_cronjob_status_last_schedule_time{} + on (cronjob) group_left() (kube_cronjob_spec_suspend == 0))
             <=
             (
-            # get start time of the lastest failed job which is created from CJ
+            # get start time of the latest failed job
             max without (owner_name) (label_replace(
+                # get start time of the last failed jobs
                 max by (kubernetes_cluster,namespace, owner_name) (
-                  
-                  (kube_job_status_start_time * on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_failed{condition="true"} == 1))
+                  (max by (kubernetes_cluster,namespace,job_name) (kube_job_status_start_time) * on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_failed{condition="true"} == 1))
+                  * on (job_name) group_left(owner_name) kube_job_owner{owner_kind="CronJob"}
+                )
+                ==
+                # get start time of the latest completed jobs
+                # this check is needed as manually created jobs from CJ doesn't get registered in CJ's last schedule time 
+                max by (kubernetes_cluster,namespace, owner_name) (
+                  (max by (kubernetes_cluster,namespace,job_name) (kube_job_status_start_time) + on (kubernetes_cluster,namespace,job_name) group_left() (kube_job_status_active == 0))
                   * on (job_name) group_left(owner_name) kube_job_owner{owner_kind="CronJob"}
                 )
               ,
