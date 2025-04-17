@@ -23,7 +23,7 @@ groups:
           alerttype: stock
           alertgroup: cronjob
         annotations:
-          summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} failed to run within 24h of being scheduled"
+          summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} failed to complete a run within 24h of being scheduled"
           command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
           logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\",cronjob=\"{{ $labels.cronjob }}\"}"}]|link>'
       - alert: CronJobFailed
