@@ -67,18 +67,24 @@ groups:
           team: infra
         annotations:
           summary: "Netapp Volume [{{ $labels.volume }}] in [{{$labels.node}}/{{$labels.svm}}] is [{{$value}}%] used"
-        # Certificates expiring within 1 month
-      - alert: CertificatesExpiring
-        expr: '0 < (security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < (30*24*3600)'
-        labels:
-          team: infra
-        annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring in [{{ $value | humanizeDuration }}]"
+      # Commenting out the alerts regarding Netapp certificates as we have seen
+      # one of the trusted CA certificates, which come with the ONTAP firmware
+      # reaching to expiry and triggering the alerts. Regarding the
+      # certificates we self managed, we have set expiration dates in 2031 so
+      # we should not lose any alert we'd act on while this is disabled. We
+      # should re-evaluate after we bump ONTAP firmware or replace our cluster.
+      #  # Certificates expiring within 1 month
+      #- alert: CertificatesExpiring
+      #  expr: '0 < (security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < (30*24*3600)'
+      #  labels:
+      #    team: infra
+      #  annotations:
+      #    summary: "Netapp Certificate [{{ $labels.uuid }}] will be expiring in [{{ $value | humanizeDuration }}]"
 
-        # Certificates expired
-      - alert: CertificatesExpired
-        expr: '(security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < 0'
-        labels:
-          team: infra
-        annotations:
-          summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired [{{ $value | humanizeDuration }}] ago"
+      #  # Certificates expired
+      #- alert: CertificatesExpired
+      #  expr: '(security_certificate_expiry_time{kubernetes_namespace="sys-prom"} - time()) < 0'
+      #  labels:
+      #    team: infra
+      #  annotations:
+      #    summary: "Netapp Certificate [{{ $labels.uuid }}] has been expired [{{ $value | humanizeDuration }}] ago"
