@@ -24,4 +24,4 @@ groups:
             kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} patch certificate {{ $labels.name }} --type=merge --subresource status --patch "$patch"
             ```
             If it appears the issuance has got stuck and manual renew does not work you can delete the latest `CertificateRequest` of the cert from {{ $labels.namespace }} namespace
-            `k --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get certificaterequests`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get certificaterequests`
