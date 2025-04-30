@@ -96,8 +96,7 @@ groups:
         labels:
           team: infra
         annotations:
-          description:
-            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage over 95%"
+          description: "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage over 95%"
           summary: 'Kubernetes Node high memory'
           value: "{{ $value }}"
       - alert: NodeHighCPU
@@ -106,10 +105,22 @@ groups:
         labels:
           team: infra
         annotations:
-          description:
-            "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage over 95%"
-          summary: 'Kubernetes Node high cpu'
+          description: "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage over 95%"
+          summary: |
+            Kubernetes Node high CPU
+
+            If Node has persistently high (over 5m) CPU usage, this is likely to
+            impact performance of some of the of the workloads. Check the 2
+            dashboards linked in annotations for:
+
+              1. Individual Pods that are loading the Node, these are the
+                contenders to be moved (by cordoning the Node and deleting the Pod)
+              2. Node exporter CPU graph, if we have high irq/softirq/system
+                usage, CPU is used to manage the high load, not do actual work.
+                User CPU <50% indicates workloads will be feeling the slowdown.
           value: "{{ $value }}"
+          node_exporter_cpu_dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rYdddlPWk/node-exporter-full?var-node={{$labels.instance}}&editPanel=3"
+          node_pod_cpu_dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?var-instance={{$labels.instance}}"
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
@@ -168,7 +179,7 @@ groups:
           summary: "AZ {{ $labels.zone}} is running out of allocatable memory"
           impact: "Pods may not find room to get scheduled."
           action: "Review workloads' resource reservations and adjust them."
-          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization AND https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/SAY0wIcik/kubernetes-resource-provisioning|link>"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization AND https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/SAY0wIcik/kubernetes-resource-provisioning"
   - name: kyverno
     rules:
       - alert: KyvernoBackgroundCheckRuleFailure
