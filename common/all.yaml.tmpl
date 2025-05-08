@@ -90,28 +90,6 @@ groups:
         annotations:
           summary: "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting mem usage over 95%"
           value: "{{ $value }}"
-      - alert: NodeHighCPU
-        expr: '(( sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{mode!="idle",job="node-exporter"}[10m])) / sum by (instance, kubernetes_cluster)(rate(node_cpu_seconds_total{job="node-exporter"}[10m]))) * 100 ) > 95'
-        for: 5m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.kubernetes_cluster }} / {{ $labels.instance }} is reporting cpu usage over 95%"
-          description: |
-            Kubernetes Node high CPU
-
-            If Node has persistently high (over 5m) CPU usage, this is likely to
-            impact performance of some of the of the workloads. Check the 2
-            dashboards linked in annotations for:
-
-              1. Individual Pods that are loading the Node, these are the
-                contenders to be moved (by cordoning the Node and deleting the Pod)
-              2. Node exporter CPU graph, if we have high irq/softirq/system
-                usage, CPU is used to manage the high load, not do actual work.
-                User CPU <50% indicates workloads will be feeling the slowdown.
-          value: "{{ $value }}"
-          node_exporter_cpu_dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rYdddlPWk/node-exporter-full?var-node={{$labels.instance}}&editPanel=3"
-          node_pod_cpu_dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?var-instance={{$labels.instance}}"
       # Non-kube targets have their own dedicated alerts
       - alert: NodeExporterDown(kube)
         # Joining with kube_pod_info to get the pod name of the exporter, to enable the loki link
