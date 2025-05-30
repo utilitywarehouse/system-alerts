@@ -5,7 +5,7 @@ groups:
   - name: RDS
     rules:
       - alert: FreeableMemory
-        expr: '(aws_rds_freeable_memory_average{dbinstance_identifier!=""} offset 15m / on(dbinstance_identifier) group_left(team, instance_class) aws_rds_memory_bytes{dbinstance_identifier!=""}) < 0.25'
+        expr: '(aws_rds_freeable_memory_average{} offset 15m / on(dbinstance_identifier) group_left(team, instance_class) aws_rds_memory_bytes{}) < 0.25'
         for: 15m
         labels:
           alerttype: stock
@@ -23,7 +23,7 @@ groups:
             Consider upgrade at least to `db.t4g.small`.
 
       - alert: CPUUtilization
-        expr: 'aws_rds_cpuutilization_average{dbinstance_identifier!=""} offset 15m > 90'
+        expr: '(aws_rds_cpuutilization_average{} offset 15m > 90) * on(dbinstance_identifier) group_left(team, instance_class) aws_rds_info{}'
         for: 15m
         labels:
           alerttype: stock
