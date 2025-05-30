@@ -19,6 +19,7 @@ configMapGenerator:
       - stock/elasticsearch.yaml.tmpl
       - stock/missing_replicas.yaml.tmpl
       - stock/namespace_sync.yaml.tmpl
+      - stock/rds.yaml.tmpl
       - stock/storage.yaml.tmpl
       - stock/team_detection.yaml
       - stock/terraform_sync.yaml.tmpl
