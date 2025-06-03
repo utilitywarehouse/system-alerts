@@ -25,7 +25,6 @@ groups:
 
       - alert: CPUUtilization
         expr: '(aws_rds_cpuutilization_average{} offset 15m > 90) * on(dbinstance_identifier) group_left(team, instance_class) aws_rds_info{}'
-        for: 15m
         labels:
           alerttype: stock
           alertgroup: RDS
