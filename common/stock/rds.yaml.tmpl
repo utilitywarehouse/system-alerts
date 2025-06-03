@@ -2,6 +2,7 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
+  # The expressions are joining by multiplying on aws_rds_info, which is always 1, to get the team and instance class labels.
   - name: RDS
     rules:
       - alert: FreeableMemory
