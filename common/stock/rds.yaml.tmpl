@@ -7,6 +7,7 @@ groups:
     rules:
       - alert: RDSFreeableMemory
         expr: '(last_over_time(aws_rds_freeable_memory_average[20m])  / on (dbinstance_identifier) group_left (team) aws_rds_memory_bytes) < 0.25'
+        for: 15m
         labels:
           alerttype: stock
           alertgroup: RDS
