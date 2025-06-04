@@ -5,8 +5,8 @@ groups:
   # The expressions are joining by multiplying on aws_rds_info, which is always 1, to get the team and instance class labels.
   - name: RDS
     rules:
-      - alert: FreeableMemory
-        expr: '(aws_rds_freeable_memory_average{} offset 15m / on(dbinstance_identifier) group_left(team, instance_class) aws_rds_memory_bytes{}) < 0.25'
+      - alert: RDSFreeableMemory
+        expr: '(last_over_time(aws_rds_freeable_memory_average[20m])  / on (dbinstance_identifier) group_left (team) aws_rds_memory_bytes) < 0.25'
         for: 15m
         labels:
           alerttype: stock
@@ -23,8 +23,8 @@ groups:
             NOTE: `db.t4g.micro` is constantly under memory pressure, so it's usable only for testing that your connection setup works, but it's not suitable for dev usage.
             Consider upgrade at least to `db.t4g.small`.
 
-      - alert: CPUUtilization
-        expr: '(aws_rds_cpuutilization_average{} offset 15m > 90) * on(dbinstance_identifier) group_left(team, instance_class) aws_rds_info{}'
+      - alert: RDSCPUUtilization
+        expr: '(last_over_time(aws_rds_cpuutilization_average{}[20m]) > 90) * on(dbinstance_identifier) group_left(team) aws_rds_info{}'
         labels:
           alerttype: stock
           alertgroup: RDS
