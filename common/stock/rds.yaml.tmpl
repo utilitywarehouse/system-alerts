@@ -8,19 +8,25 @@ groups:
       - record: uw_rds_owner_team
         expr: 'sum by(dbidentifier,team) (label_replace(rds_instance_tags{tag_owner!=""}, "team", "$1", "tag_owner", "(.*)"))'
 
+    #   based on https://github.com/qonto/database-monitoring-framework/blob/main/charts/prometheus-rds-alerts/values.yaml
+    #   and AWS https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS
   - name: RDS
     rules:
       - alert: RDSFreeableMemory
-        expr: '(last_over_time(aws_rds_freeable_memory_average[20m])  / on (dbinstance_identifier) group_left (team) aws_rds_memory_bytes) < 0.25'
+        expr: |
+          (max by (aws_account_id, aws_region, dbidentifier) (rds_freeable_memory_bytes{}) * 100 / on(aws_account_id, aws_region, dbidentifier) 
+               (max by (instance_class) (rds_instance_memory_bytes{}) * on (instance_class) group_right() max by (aws_account_id, aws_region, dbidentifier, instance_class) (rds_instance_info{})) 
+          < 25 ) + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 15m
         labels:
           alerttype: stock
           alertgroup: RDS
         annotations:
-          summary: "RDS instance {{$labels.dbinstance_identifier}} has less than 25% freeable memory"
+          summary: 'RDS instance {{$labels.dbidentifier}} has {{ printf "%.0f" $value }}% freeable memory'
           impact: "Running out of memory can result in rejected connections"
           link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
-          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rds-cloudwatch/rds-cloudwatch?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-60&var-instance={{ $labels.dbinstance_identifier }}|link>"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-27&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSMemoryUtilization/|link>"
           action: |
             Low freeable memory means that there is a spike in database connections or that your instance may be under high memory pressure. 
             Check for memory pressure by monitoring the SwapUsage in addition to FreeableMemory. 
