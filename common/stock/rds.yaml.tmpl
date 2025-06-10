@@ -2,7 +2,12 @@
 # DO NOT REMOVE line above, used in `pre-commit` hook
 
 groups:
-  # The expressions are joining by multiplying on aws_rds_info, which is always 1, to get the team and instance class labels.
+  - name: team_detection
+    rules:
+      # used as: `<metric_with_dbidentifier_label> + on (dbidentifier) group_left (team) uw_rds_owner_team`
+      - record: uw_rds_owner_team
+        expr: 'sum by(dbidentifier,team) (label_replace(rds_instance_tags{tag_owner!=""}, "team", "$1", "tag_owner", "(.*)"))'
+
   - name: RDS
     rules:
       - alert: RDSFreeableMemory
