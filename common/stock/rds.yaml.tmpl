@@ -4,7 +4,7 @@
 groups:
   - name: team_detection
     rules:
-      # used as: `<metric_with_dbidentifier_label> + on (dbidentifier) group_left (team) uw_rds_owner_team`
+      # used as: `<metric_with_dbidentifier_label> + on (dbidentifier) group_left (team) uw_rds_owner_team` as the value is always 0
       - record: uw_rds_owner_team
         expr: 'sum by(dbidentifier,team) (label_replace(rds_instance_tags{tag_owner!=""}, "team", "$1", "tag_owner", "(.*)"))'
 
@@ -29,15 +29,17 @@ groups:
             Consider upgrade at least to `db.t4g.small`.
 
       - alert: RDSCPUUtilization
-        expr: '(last_over_time(aws_rds_cpuutilization_average{}[20m]) > 90) * on(dbinstance_identifier) group_left(team) aws_rds_info{}'
+        expr: '(max by (aws_account_id, aws_region, dbidentifier) (rds_cpu_usage_percent_average) > 85) + on (dbidentifier) group_left (team) uw_rds_owner_team'
+        for: 10m
         labels:
           alerttype: stock
           alertgroup: RDS
         annotations:
-          summary: "RDS instance {{$labels.dbinstance_identifier}} has high CPU utilisation"
+          summary: "RDS instance {{$labels.dbidentifier}} has high CPU utilisation"
           impact: "High CPU utilization can lead to very high response time and time-outs"
           link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
-          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rds-cloudwatch/rds-cloudwatch?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-42&var-instance={{ $labels.dbinstance_identifier }}|link>"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-27&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSCPUUtilization/|link>"
           action: |
             CPU utilization measures non-idle time.
             Consider using Enhanced Monitoring or Performance Insights to review which wait time is consuming the most of the CPU time (guest, irq, wait, nice, and so on). 
