@@ -25,7 +25,7 @@ groups:
           summary: 'RDS instance {{$labels.dbidentifier}} has {{ printf "%.0f" $value }}% freeable memory'
           impact: "Running out of memory can result in rejected connections"
           link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
-          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-27&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-30&var-dbidentifier={{ $labels.dbidentifier }}|link>"
           qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSMemoryUtilization/|link>"
           action: |
             Low freeable memory means that there is a spike in database connections or that your instance may be under high memory pressure. 
