@@ -84,3 +84,53 @@ groups:
               a. If Lock:relation, identify and fix the lock reason
                  For other wait type, looks at https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/PostgreSQL.Tuning.html
               b. Kill the SQL queries
+
+      - alert: RDSSwapUtilization
+        expr: (max by (aws_account_id, aws_region, dbidentifier) (delta(rds_swap_usage_bytes{}[1h])) / 1024 / 1024 >= 20) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 2m
+        annotations:
+          summary: "{{ $labels.dbidentifier }} SWAP utilization is high"
+          impact: "Performance could be degraded"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-32&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSSwapUtilization/|link>"
+          action: |
+            1. Check memory usage over last weeks to identify if server is missing memory
+            2. Check if there long running PostgreSQL clients that don’t execute SQL queries for a while on live dashboard:
+              ```SQL
+              SELECT
+                pid,
+                usename,
+                datname,
+                application_name,
+                age(now(), query_start) as last_query_age,
+                age(now(), backend_start) as backend_age,
+                backend_start,
+                query_start last_query,
+                left(query, 60) query
+              FROM pg_stat_activity
+              WHERE query_start is not null
+              AND pid != pg_backend_pid()
+              AND usename != 'rdsrepladmin'
+              AND state != 'active'
+              AND query not like 'START_REPLICATION %'
+              AND query_start < NOW() - INTERVAL '24 HOURS'
+              ORDER by query_start asc;
+              ```
+            Mitigation
+            1. Reduce number of concurrent connections on the server
+            2. Increase RDS instance type to have more memory
+
+      - alert: RDSIOPSUtilization
+        expr: (max by (aws_account_id, aws_region, dbidentifier) ((rds_read_iops_average{} + rds_write_iops_average{}) * 100 / rds_max_disk_iops_average{}) > 80)  + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 10m
+        annotations:
+          summary: '{{ $labels.dbidentifier }} uses {{ printf "%.0f" $value }}% of its disk IOPS'
+          impact: "Performance could be degraded"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-29&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSIOPSUtilization/|link>"
+          action: |
+            Open RDS Performance insights to identify IOPS-intensive queries.
+            Mitigation:
+              1. Kill SQL queries that generate intensive IOPS
+              2. Try to improve the query
+              3. Increase provisioned IOPS if possible (gp3 or io1 storage class). Be aware that some instances have IOPS limits.
