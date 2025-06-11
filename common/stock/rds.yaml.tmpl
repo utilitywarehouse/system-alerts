@@ -16,8 +16,8 @@ groups:
         expr: |
           (max by (aws_account_id, aws_region, dbidentifier) (rds_freeable_memory_bytes{}) * 100 / on(aws_account_id, aws_region, dbidentifier) 
                (max by (instance_class) (rds_instance_memory_bytes{}) * on (instance_class) group_right() max by (aws_account_id, aws_region, dbidentifier, instance_class) (rds_instance_info{})) 
-          < 25 ) + on (dbidentifier) group_left (team) uw_rds_owner_team
-        for: 15m
+          < 20 ) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 10m
         labels:
           alerttype: stock
           alertgroup: RDS
