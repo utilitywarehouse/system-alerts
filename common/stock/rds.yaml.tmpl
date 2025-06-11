@@ -51,3 +51,36 @@ groups:
             Consider using Enhanced Monitoring or Performance Insights to review which wait time is consuming the most of the CPU time (guest, irq, wait, nice, and so on). 
             Then evaluate which queries consume the highest amount of CPU. 
             If you can't tune your workload, consider moving to a larger DB instance class.
+      # Merged the AWS DBload alert & qonto NonCPUUtilisation into this one.
+      # Diverged from the qonto alert by using as a threshold the number of vCPUS, rather than multiplying with 4.
+      # Asked a question of why are they multiplying here: https://github.com/qonto/database-monitoring-framework/issues/48
+      - alert: RDSDBLoad
+        expr: |
+          max by (aws_account_id, aws_region, dbidentifier) (rds_dbload_average)
+          > on(aws_account_id, aws_region, dbidentifier) (
+          max by (instance_class) (rds_instance_vcpu_average{}) * on (instance_class) group_right() max by (aws_account_id, aws_region, dbidentifier, instance_class) (rds_instance_info{})
+          ) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
+        annotations:
+          summary: 'RDS instance {{$labels.dbidentifier}} has high DB load: {{ printf "%.0f" $value }}'
+          impact: "Performance is degraded because some queries could not be executed."
+          link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-26&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSNonCPUUtilization/|link>"
+          perf_insides_link: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.UsingDashboard.Components.html#USER_PerfInsights.UsingDashboard.Components.AvgActiveSessions.dims"
+          action: |
+            If the number of processes exceed the number of vCPUs, the processes start queuing. When the queuing increases, the performance is impacted. 
+            Check the linked dashboard as the are 2 causes:
+            1. The DB load is caused by `CPU execution`: you can monitor CPUUtilization, DBLoadCPU and queued tasks in Performance Insights/Enhanced Monitoring. 
+               You might want to throttle connections to the instance, tune any SQL queries with a high CPU load, or consider a larger instance class.
+            2. The DB load is caused by `Non CPU execution`:             
+              This situation usually occurs when SQL queries are blocked by software reason (e.g. Locks) or hardware saturation (e.g. IOPS)
+              Identify the waits type of active queries on RDS Performance insights.
+              Select `Top waits` and `Top database` to quickly identify wait reason and database.
+              Mitigation:
+              a. If Lock:relation, identify and fix the lock reason
+                 For other wait type, looks at https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/PostgreSQL.Tuning.html
+              b. Kill the SQL queries
