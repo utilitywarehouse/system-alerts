@@ -148,3 +148,30 @@ groups:
             Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSPostgreSQLMaximumUsedTransaction/|Qonto runbook> to deal with this.
             AWS also refers to these resources for troubleshooting this: <https://aws.amazon.com/blogs/database/implement-an-early-warning-system-for-transaction-id-wraparound-in-amazon-rds-for-postgresql/|guide> 
             and <https://aws.amazon.com/blogs/database/understanding-autovacuum-in-amazon-rds-for-postgresql-environments/|autovacuum concepts>
+
+      - alert: RDSDiskSpaceLimit
+        # Autoscaling kicks in at least at < 10%
+        expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{} * 100 / rds_allocated_storage_bytes{}) < 10) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 20m
+        annotations:
+          summary: '{{ $labels.dbidentifier }} has {{ printf "%.2g" $value }}% free disk space'
+          impact: "The PostgreSQL instance will stop to prevent data corruption if no more disk space is available."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-33&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpaceLimit/|link>"
+          action: |
+            Check that autoscaling is turned on for your instance.
+            See <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|AWS docs>.
+            Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpaceLimit/|Qonto runbook> for details on how to reclaim space.
+          
+      - alert: RDSDiskSpacePrediction
+        expr: (predict_linear(min by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{})[30m:], 3600 * 4) < 1) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 10m
+        annotations:
+          summary: "{{ $labels.dbidentifier }} will run out of disk space in 4 hours"
+          impact: "The PostgreSQL instance will stop to prevent data corruption if no more disk space is available."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-33&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|link>"
+          action: |
+            Check that autoscaling is turned on for your instance.
+            See <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|AWS docs>.
+            Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook> for details on how to action further.
