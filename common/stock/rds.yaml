@@ -69,8 +69,8 @@ groups:
           impact: "Performance is degraded because some queries could not be executed."
           link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-26&var-dbidentifier={{ $labels.dbidentifier }}|link>"
-          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSNonCPUUtilization/|link>"
-          perf_insides_link: "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.UsingDashboard.Components.html#USER_PerfInsights.UsingDashboard.Components.AvgActiveSessions.dims"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSNonCPUUtilization/|link>"
+          perf_insides_link: "<https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.UsingDashboard.Components.html#USER_PerfInsights.UsingDashboard.Components.AvgActiveSessions.dims|link>"
           action: |
             If the number of processes exceed the number of vCPUs, the processes start queuing. When the queuing increases, the performance is impacted. 
             Check the linked dashboard as the are 2 causes:
@@ -92,7 +92,7 @@ groups:
           summary: "{{ $labels.dbidentifier }} SWAP utilization is high"
           impact: "Performance could be degraded"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-32&var-dbidentifier={{ $labels.dbidentifier }}|link>"
-          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSSwapUtilization/|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSSwapUtilization/|link>"
           action: |
             1. Check memory usage over last weeks to identify if server is missing memory
             2. Check if there long running PostgreSQL clients that don’t execute SQL queries for a while on live dashboard:
@@ -127,10 +127,24 @@ groups:
           summary: '{{ $labels.dbidentifier }} uses {{ printf "%.0f" $value }}% of its disk IOPS'
           impact: "Performance could be degraded"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-29&var-dbidentifier={{ $labels.dbidentifier }}|link>"
-          qonto_runbook: "https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSIOPSUtilization/|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSIOPSUtilization/|link>"
           action: |
             Open RDS Performance insights to identify IOPS-intensive queries.
             Mitigation:
               1. Kill SQL queries that generate intensive IOPS
               2. Try to improve the query
               3. Increase provisioned IOPS if possible (gp3 or io1 storage class). Be aware that some instances have IOPS limits.
+
+      - alert: RDSPostgreSQLMaximumUsedTransaction
+        expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_maximum_used_transaction_ids_average) > (2^32) * 0.5) + on (dbidentifier) group_left (team) uw_rds_owner_team # 50% of the max transactions limit
+        for: 5m
+        annotations:
+          summary: "{{ $labels.dbidentifier }} is using {{ $value }} transaction IDs on 4 billions hard limit"
+          impact: "PostgreSQL will shut down and refuse to start any new transactions once there are fewer than 3 million transactions left until wraparound"
+          link: "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Best_Practice_Recommended_Alarms_AWS_Services.html#RDS"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-37&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSPostgreSQLMaximumUsedTransaction/|link>"
+          action: |
+            Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSPostgreSQLMaximumUsedTransaction/|Qonto runbook> to deal with this.
+            AWS also refers to these resources for troubleshooting this: <https://aws.amazon.com/blogs/database/implement-an-early-warning-system-for-transaction-id-wraparound-in-amazon-rds-for-postgresql/|guide> 
+            and <https://aws.amazon.com/blogs/database/understanding-autovacuum-in-amazon-rds-for-postgresql-environments/|autovacuum concepts>
