@@ -18,3 +18,16 @@ groups:
             Check if rds-exporter is running in sys-prom namespace.
             Check the logs.
             Restart pods.
+
+      - alert: RDSExporterErrors
+        expr: increase(rds_exporter_errors_total[5m]) > 1
+        for: 9m
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.instance }} is reporting errors"
+          impact: "RDS instances might not be monitored"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}]|link>'
+          action: |
+            Check the logs.
