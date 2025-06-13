@@ -1,0 +1,20 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: rds-exporter
+    rules:
+      - alert: RDSExporterMissingMetrics
+        expr: absent(rds_exporter_build_info)
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Prometheus RDS exporter metrics are missing"
+          impact: "RDS instances are not monitored"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}]|link>'
+          action: |
+            Check if rds-exporter is running in sys-prom namespace.
+            Check the logs.
+            Restart pods.
