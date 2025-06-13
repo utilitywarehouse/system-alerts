@@ -175,3 +175,16 @@ groups:
             Check that autoscaling is turned on for your instance.
             See <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|AWS docs>.
             Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook> for details on how to action further.
+
+      - alert: RDSUnappliedParameters
+        expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_instance_info{pending_modified_values="true"}) > 0) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        for: 1h
+        annotations:
+          summary: "{{ $labels.dbidentifier }} has unapplied parameters"
+          impact: "RDS instance is running with outdated configuration"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|link>"
+          action: |
+            Apply the new parameters by restarting the instance
+            Find a suitable time slot for this, as it will cause a momentary outage.
+            Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook>
+            for details on tracking what changed.
