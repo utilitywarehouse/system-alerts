@@ -9,6 +9,7 @@ configMapGenerator:
       - git-mirror.yaml.tmpl
       - logging.yaml.tmpl=logging.yaml.tmpl
       - prometheus.yaml.tmpl
+      - rds.yaml.tmpl
       - terraform-applier.yaml.tmpl
       - thanos.yaml.tmpl
       - vault.yaml.tmpl

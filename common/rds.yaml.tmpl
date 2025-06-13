@@ -1,0 +1,84 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: rds-exporter
+    rules:
+      - alert: RDSExporterMissingMetrics
+        expr: absent(rds_exporter_build_info)
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Prometheus RDS exporter metrics are missing"
+          impact: "RDS instances are not monitored"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}]|link>'
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterMissingMetrics/|link>"
+          action: |
+            Check if rds-exporter is running in sys-prom namespace.
+            Check the logs.
+            Restart pods.
+
+      - alert: RDSExporterErrors
+        expr: increase(rds_exporter_errors_total[5m]) > 1
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.instance }} is reporting errors"
+          impact: "RDS instances might not be monitored"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}]|link>'
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterErrors/|link>"
+          action: |
+            Check the logs and <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterErrors/|Qonto runbook> for details.
+
+  - name: rds-quota
+    rules:
+      # Alert when reaching 80% of RDS instance quota
+      - alert: RDSQuotaInstanceLimit
+        expr: |
+          count(
+              count(rds_instance_info{}) by (aws_account_id, aws_region, dbidentifier)
+          ) by (aws_account_id, aws_region)
+          * 100
+          /
+          sum(
+              max(rds_quota_max_dbinstances_average{}) by (aws_account_id, aws_region)
+          ) by (aws_account_id, aws_region) > 80
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: 'The number of RDS instances is close to the maximum quota: using {{ printf "%.0f" $value }}%'
+          impact: "RDS instance creation will be rejected when we reach the quota"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/f65d785e-d8c2-49b5-8314-388f30483f57/rds-instances?from=now-3h&to=now|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSQuotaInstanceLimit/|link>"
+          action: |
+            Request quota increase at AWS.
+            Check for unused instances.
+            Check <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSQuotaInstanceLimit/|Qonto runbook> for details.
+
+      - alert: RDSQuotaStorageLimit
+        expr: |
+          sum(
+              max(rds_allocated_storage_bytes{}) by (aws_account_id, aws_region, dbidentifier)
+          ) by (aws_account_id, aws_region)
+          * 100
+          /
+          sum(
+              max(rds_quota_total_storage_bytes{}) by (aws_account_id, aws_region)
+          ) by (aws_account_id, aws_region) > 80
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: 'The total of RDS storage is close from the AWS quota limit: using {{ printf "%.0f" $value }}%'
+          impact: "RDS instance creation & extending existing RDS storage will be rejected when we reach the quota"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/f65d785e-d8c2-49b5-8314-388f30483f57/rds-instances?from=now-3h&to=now|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSQuotaStorageLimit/|link>"
+          action: |
+            Request quota increase at AWS.
+            Check for unused instances.
+            Check <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSQuotaStorageLimit/|Qonto runbook> for details.
