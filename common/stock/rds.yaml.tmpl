@@ -52,8 +52,8 @@ groups:
             Then evaluate which queries consume the highest amount of CPU. 
             If you can't tune your workload, consider moving to a larger DB instance class.
       # Merged the AWS DBload alert & qonto NonCPUUtilisation into this one.
-      # Diverged from the qonto alert by using as a threshold the number of vCPUS, rather than multiplying with 4.
-      # Asked a question of why are they multiplying here: https://github.com/qonto/database-monitoring-framework/issues/48
+      # Diverged from the qonto alert by using as a threshold the number of vCPUS,as AWS recommends, rather than multiplying with 4.
+      # We might need to adjust it to use multiplication, if we see it triggering a lot, based on the response from Qonto: https://github.com/qonto/database-monitoring-framework/issues/48
       - alert: RDSDBLoad
         expr: |
           max by (aws_account_id, aws_region, dbidentifier) (rds_dbload_average)
