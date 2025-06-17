@@ -40,7 +40,7 @@ route:
 ### Note on alert grouping
 If your team is using a custom grouping that is missing entries from the
 default grouping (set at the top of the [alertmanager
-config](https://github.com/utilitywarehouse/kubernetes-manifests/blob/master/prod-aws/sys-mon/resources/alertmanager-config-template.yaml#L12)), it is suggested to configure stock alerts to use the stock grouping:
+config](https://github.com/utilitywarehouse/terraform/blob/master/grafana/uw/am/config.yaml#L6-L13)), it is suggested to configure stock alerts to use the stock grouping:
 ```
 route:
   ...
