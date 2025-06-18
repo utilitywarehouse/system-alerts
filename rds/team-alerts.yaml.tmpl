@@ -176,6 +176,17 @@ groups:
             See <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|AWS docs>.
             Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook> for details on how to action further.
 
+      - alert: RDSStorageAutoscaling
+        expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_allocated_storage_bytes{} * 100 / rds_max_allocated_storage_bytes{}) > 80) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        annotations:
+          summary: "{{ $labels.dbidentifier }} allocated storage reached 80% of the maximum storage threshold for autoscaling"
+          impact: "RDS instance may not be able to autoscale storage"
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-41&var-dbidentifier={{ $labels.dbidentifier }}|link>"
+          rds-autoscaling: <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|link>
+          action: |
+            Increase the the maximum storage threshold for autoscaling by updating the property `max_allocated_storage`
+            in the terraform project for your instance and perform terraform apply.
+
       - alert: RDSUnappliedParameters
         expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_instance_info{pending_modified_values="true"}) > 0) + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 1h
