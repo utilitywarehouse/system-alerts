@@ -1,0 +1,115 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+# Adapted from official alerts:
+# https://github.com/cockroachdb/cockroach/blob/master/monitoring/rules/alerts.rules.yml
+#
+# Discarded alerts:
+# * InstanceDead,InstanceNotReady,InstanceRestart,InstanceFlapping: all covered
+#   by our generic stock alerts
+# * VersionMismatch: in kubernetes all replicas share the same version, so if
+#   an issue appears, our "missing replica" alerts should catch it
+# * SlowXXRequest: these do not have specific actions besides "investigate if
+#   tee slowness is problematic", which are not useful as generic, actionable
+#   stock alerts
+# * XXCerfiticateExpiresSoon: the two flavours of certificate management used
+#   for cockroach (cfssl and cert-manager) have very different validity
+#   periods, so it's not possible to have a stock alert that covers both of
+#   them well.
+#
+# Limitations:
+# * The cockroachdb deployments are not consolidated, so the labels used in the
+#   alerts are a best guess that works for current deployments, but not
+#   necessarily future ones, since there is no guarantee that those labels are
+#   used with that meaning. Currently using "app" and "kubernetes_name" to tell
+#   different clusters appart.
+#
+# Improvements:
+# * ensuring cockroach metric have the 'namespace' label: it will remove the
+#   need for the label replace expression in every alert
+# * common label to identify cdb workloads: it will allow filtering the metrics
+#   to avoid accidental use of non-cockroachdb metrics with the same name
+# * common label to identify different cdb deployments on the same namespace:
+#   will guarantee that the stock alerts work fine in those cases
+
+groups:
+  - name: CockroachDB
+    rules:
+      # Available capacity (these are more conservative than the regular storage stock alerts)
+      - alert: CockroachDBStoreDiskLow
+        expr: |
+          label_replace(
+            ((capacity_available / capacity) < 0.15)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 1h
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} only has {{ $value }}% space left in store number {{ $labels.store }}
+          impact: Exhausting available disk space will make the db unavaiable
+          action: Investigate disk usage and adjust volume size if necessary.
+          runbook: https://github.com/utilitywarehouse/documentation/blob/master/infra/kubernetes/resizing-statefulset-pvc.md
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1HRDycZiz/kubernetes-volumes?from=now-2h&to=now&var-namespace={{ $labels.kubernetes_namespace }}|link>
+      - alert: CockroachDBClusterDiskLow
+        expr: |
+          label_replace(
+            (sum by(kubernetes_namespace,kubernetes_name,app) (capacity_available / capacity) < 0.2)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 1h
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}} only has {{ $value }}% space left as a cluster
+          impact: Exhausting available disk space will make the db unavaiable
+          action: Investigate disk usage and adjust volume size if necessary.
+          runbook: https://github.com/utilitywarehouse/documentation/blob/master/infra/kubernetes/resizing-statefulset-pvc.md
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1HRDycZiz/kubernetes-volumes?from=now-2h&to=now&var-namespace={{ $labels.kubernetes_namespace }}|link>
+      # Ranges availability (most of the time will overlap with stock "missing replicas", but not always)
+      - alert: CockroachDBUnavailableRanges
+        expr: |
+          label_replace(
+            (sum by (kubernetes_namespace,kubernetes_name,app)(ranges_unavailable) > 0 )
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}} has {{ $value }}% unavailable ranges. Most likely due to missing replicas.
+          impact: The unavailable ranges cannot process queries (part of the database is inaccesible)
+          action: Fix unready replicas. If the cluster seems fine, check "advanced debug" instructions on https://www.cockroachlabs.com/docs/stable/cluster-setup-troubleshooting#replication-issues
+      # Cockroach-measured clock offset nearing limit (by default, servers kill themselves at 400ms from the mean, so alert at 300ms)
+      - alert: CockroachDBClockOffsetNearMax
+        expr: |
+          label_replace(
+            (abs(clock_offset_meannanos/1000/1000) > 300)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 5m
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} clock if offset by {{ $value }} miliseconds from the cluster mean
+          impact: At 400ms offset, cockroach shuts itself down
+          action: Review clock synchronization documentation at https://www.cockroachlabs.com/docs/stable/operational-faqs#how-can-i-tell-how-well-node-clocks-are-synchronized
+      # Getting close to open file descriptor limit(this should never fire, as flatcar currently has "infinite" descriptors enabled)
+      - alert: HighOpenFDCount
+        expr: |
+          label_replace(
+            (sys_fd_open / sys_fd_softlimit > 0.8)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: cockroachdb
+        annotations:
+          summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} is using over {{$value}}% of the file descriptors
+          impact: If 100% is reached, cockroach won't be able to keep running
+          action: Increase available descriptors following https://www.cockroachlabs.com/docs/v25.2/recommended-production-settings#file-descriptors-limit
