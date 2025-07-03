@@ -1,0 +1,140 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+# There aren't official recommended alerts for elasticsearch, so the goal is
+# detecting degraded cluster states and capacity limits, getting inspiration
+# from the cockroachDB official alerts.
+
+groups:
+  - name: Elasticsearch-community-prometheus-exporter
+    # Uses metrics provided by the prometheus-community elasticsearch exporter:
+    # https://github.com/prometheus-community/elasticsearch_exporter
+    rules:
+      - alert: ElasticsearchClusterDegraded
+        expr: |
+          label_replace(
+            (sum by (kubernetes_namespace, color, cluster) (elasticsearch_cluster_health_status{color!="green"})  > 0)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
+          impact: Shards missing or unallocated- risk of data loss, degraded cluster performance, possible search and retrieval issues
+          action: Check the Elasticsearch documentation for the debug and recovery options
+          link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchCircuitBreakerTripped
+        expr: |
+          label_replace(
+            (rate(elasticsearch_breakers_tripped[10m]) > 0)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} circuit breaker tripped.
+          impact: This means Elasticsearch stopped processing requests to prevent out of memory errors.
+          action: Adjust value of env variable ELASTICSEARCH_HEAP_SIZE or modify requests to load less data.
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchPendingTasks
+        expr: |
+          label_replace(
+            (elasticsearch_cluster_health_number_of_pending_tasks > 0)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has pending tasks.
+          impact: Elasticsearch has list of pending tasks since 15 minutes. Cluster works slowly.
+          action: Check if cluster is not oversharded, increase amount of nodes
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchDiskOutOfSpace
+        expr: |
+          label_replace(
+            (elasticsearch_filesystem_data_available_bytes / elasticsearch_filesystem_data_size_bytes * 100 < 10)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of available disk space.
+          impact: Cluster might crash soon
+          action: Adjust assigned PVC size or remove obsolete data.
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+  - name: Elasticsearch-custom-prometheus-exporter
+    # Uses metrics provided by this custom exporter:
+    # https://github.com/dippydocus/elasticsearch-prometheus-exporter,
+    # which is the one used by this elasticsearch image widely used at UW :
+    # https://github.com/utilitywarehouse/uw-elasticsearch
+    rules:
+      - alert: ElasticsearchClusterDegraded
+        expr: |
+          label_replace(
+            (sum by (kubernetes_namespace, color, cluster) (es_cluster_health_status{es_cluster_health_status!="GREEN"})  > 0)
+            ,"namespace","$1","kubernetes_namespace","(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
+          impact: Shards missing or unallocated- risk of data loss, degraded cluster performance, possible search and retrieval issues
+          action: Check the Elasticsearch documentation for the debug and recovery options
+          link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchCircuitBreakerTripped
+        expr: |
+          label_replace(
+            (rate(es_circuitbreaker_tripped_count[10m]) > 0)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} circuit breaker tripped.
+          impact: This means Elasticsearch stopped processing requests to prevent out of memory errors.
+          action: Adjust value of env variable ELASTICSEARCH_HEAP_SIZE or modify requests to load less data.
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchPendingTasks
+        expr: |
+          label_replace(
+            (es_cluster_pending_tasks_number > 0)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has pending tasks.
+          impact: Elasticsearch has list of pending tasks since 15 minutes. Cluster works slowly.
+          action: Check if cluster is not oversharded, increase amount of nodes
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
+      - alert: ElasticsearchDiskOutOfSpace
+        expr: |
+          label_replace(
+            (es_fs_total_available_bytes/es_fs_total_total_bytes * 100 < 10)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: elasticsearch
+        annotations:
+          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of available disk space.
+          impact: Cluster might crash soon
+          action: Adjust assigned PVC size or remove obsolete data.
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
