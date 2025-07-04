@@ -99,7 +99,7 @@ groups:
           impact: At 400ms offset, cockroach shuts itself down
           action: Review clock synchronization documentation at https://www.cockroachlabs.com/docs/stable/operational-faqs#how-can-i-tell-how-well-node-clocks-are-synchronized
       # Getting close to open file descriptor limit(this should never fire, as flatcar currently has "infinite" descriptors enabled)
-      - alert: HighOpenFDCount
+      - alert: CockroachDBHighOpenFDCount
         expr: |
           label_replace(
             (sys_fd_open / sys_fd_softlimit > 0.8)
