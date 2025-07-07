@@ -6,7 +6,7 @@ groups:
     rules:
       - alert: RDSExporterMissingMetrics
         expr: absent(rds_exporter_build_info)
-        for: 5m
+        for: 15m
         labels:
           team: infra
         annotations:
