@@ -1,0 +1,15 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: pubsub-consumer-group-mirror
+    rules:
+      - alert: ConsumerGroupMirrorNegativeMessagesBehind
+        expr: 'sum by (consumer_group, topic, partition) (increase(pubsub_consumer_group_mirror_negative_messages_behind_total[5m])) > 0'
+        for: 5m
+        labels:
+          team: pubsub
+          group: mirror-maker-alerts
+        annotations:
+          summary: "Consumer group {{ $labels.consumer_group }} on topic {{ $labels.topic }} and partition {{ $labels.partition }} has a negative number of messages behind (current offset is higher than the end offset on partition)"
+          runbook: "https://github.com/utilitywarehouse/dev-enablement-docs/blob/main/runbooks/mirror-maker.md"
