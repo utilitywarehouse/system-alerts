@@ -1,0 +1,46 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: otel-kafka
+    rules:
+      - alert: BitnamiKafkaUnderReplicatedPartitions
+        expr: kafka_topic_partition_under_replicated_partition{app_kubernetes_io_component="cluster-metrics", kubernetes_namespace='otel'} > 0
+        for: 5m
+        labels:
+          team: otel
+          group: kafka
+        annotations:
+          summary: "In {{ $labels.kubernetes_namespace }} kafka topic {{ $labels.topic }}, partition {{ $labels.partition }} is under replicated"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/54voygUVz/bitnami-kafka-topics-and-consumer-group-stats?from=now-3h&to=now&var-datasource=default&var-namespace=otel&var-broker=All&orgId=1&refresh=1m&var-topic=All&var-consumergroup=All&viewPanel=63"
+          priority: P1
+      - alert: BitnamiKafkaAbnormalControllerState
+        expr: sum by (app_kubernetes_io_name, kubernetes_namespace) (kafka_controller_kafkacontroller_activecontrollercount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'}) != 1
+        for: 5m
+        labels:
+          team: otel
+          group: kafka
+        annotations:
+          summary: "In {{ $labels.kubernetes_namespace }}, in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} active controllers"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/qoF35R8Vk/bitnami-kafka-overview?orgId=1&refresh=1m&var-datasource=default&var-namespace=otel&var-broker=All"
+          priority: P1
+      - alert: BitnamiKafkaOfflinePartitions
+        expr: sum by (app_kubernetes_io_name, kubernetes_namespace) (kafka_controller_kafkacontroller_offlinepartitionscount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'}) > 0
+        for: 5m
+        labels:
+          team: otel
+          group: kafka
+        annotations:
+          summary: "In {{ $labels.kubernetes_namespace }},in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} offline partitions. They have no leader"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/qoF35R8Vk/bitnami-kafka-overview?orgId=1&refresh=1m&var-datasource=default&var-namespace=otel&var-broker=All"
+          priority: P1
+      - alert: BitnamiKafkaUnderMinIsrPartitionCount
+        expr: kafka_server_replicamanager_total_underminisrpartitioncount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'} > 0
+        for: 5m
+        labels:
+          team: otel
+          group: kafka
+        annotations:
+          summary: "In {{ $labels.kubernetes_namespace }}, in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} partitions under min In Sync Replica."
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/qoF35R8Vk/bitnami-kafka-overview?orgId=1&refresh=1m&var-datasource=default&var-namespace=otel&var-broker=All"
+          priority: P1
