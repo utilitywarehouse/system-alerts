@@ -13,7 +13,7 @@ groups:
           summary: "Prometheus RDS exporter metrics are missing"
           impact: "RDS instances are not monitored"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
-          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}}]|link>'
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}"}]|link>'
           qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterMissingMetrics/|link>"
           action: |
             Check if rds-exporter is running in sys-prom namespace.
@@ -29,7 +29,7 @@ groups:
           summary: "{{ $labels.instance }} is reporting errors"
           impact: "RDS instances might not be monitored"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/efa71e45-3356-4206-b61f-1e2a3e4e2185/prometheus-rds-exporter?from=now-3h&to=now|link>"
-          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}}]|link>'
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\", app_kubernetes_io_name=\"rds-exporter\", kubernetes_container=\"rds-exporter\"}"}]|link>'
           qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterErrors/|link>"
           action: |
             Check the logs and <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSExporterErrors/|Qonto runbook> for details.
