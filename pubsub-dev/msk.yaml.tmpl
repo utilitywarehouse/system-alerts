@@ -1,0 +1,16 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: pubsub-msk
+    rules:
+      - alert: MSKSharedPartitionsLimit
+        expr: kafka_server_ReplicaManager_Value{name="PartitionCount", job="msk-shared"} >= 950
+        labels:
+          team: pubsub
+          group: kafka
+        annotations:
+          summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} has total {{ $value }} partitions. It is approaching the recommended partitions limit. See https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html#partitions-per-broker"
+          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-shared-partitions-limit"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&refresh=30s&viewPanel=619"
+          priority: P2

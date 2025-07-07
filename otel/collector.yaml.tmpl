@@ -1,0 +1,49 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  # Collector - Tracing
+  - name: otel-collector
+    rules:
+      - alert: ReceiverRefusedSpans
+        expr: rate(otelcol_receiver_refused_spans{kubernetes_namespace="otel"}[5m]) > 0
+        for: 15m
+        labels:
+          team: otel
+        annotations:
+          summary: "{{ $labels.pod }} collector is refusing trace spans from clients"
+      - alert: ProcessorDroppedSpans
+        expr: rate(otelcol_processor_dropped_spans{kubernetes_namespace="otel"}[5m]) > 0
+        for: 15m
+        labels:
+          team: otel
+        annotations:
+          summary: "{{ $labels.pod }} collector is dropping trace spans"
+      - alert: ExporterFailedToSendSpans
+        expr: rate(otelcol_exporter_send_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
+        for: 15m
+        labels:
+          team: otel
+        annotations:
+          summary: "{{ $labels.pod }} collector failing to export trace spans"
+      - alert: ExporterFailedToEnqueueSpans
+        expr: rate(otelcol_exporter_enqueue_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
+        for: 15m
+        labels:
+          team: otel
+        annotations:
+          summary: "{{ $labels.pod }} collector failing to enqueue trace spans. Check the logs"
+      - alert: TailSamplerLagging
+        expr: sum(kafka_consumergroup_lag{topic="otel.otlp_spans", consumergroup="otel.tail-sampling-collector"}) > 100000
+        for: 10m
+        labels:
+          team: otel
+        annotations:
+          summary: 'The tail sampler is unable to process incoming spans quickly enough: there is a lag consuming from the spans topic'
+      - alert: TailSamplerDroppingSpans
+        expr: rate(otelcol_processor_tail_sampling_sampling_trace_dropped_too_early{kubernetes_namespace="otel"}[5m]) > 0
+        for: 5m
+        labels:
+          team: otel
+        annotations:
+          summary: "{{ $labels.pod }} collector failing to enqueue trace spans. Check the logs"

@@ -1,0 +1,28 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: otel-keda-hpa
+    rules:
+      - alert: HeadCollectorScaledMax
+        expr: kube_horizontalpodautoscaler_status_current_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}==kube_horizontalpodautoscaler_spec_max_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}
+        for: 2h
+        labels:
+          team: otel
+        annotations:
+          summary: 'The head otel collector has been scaled to maximum replicas for 2h'
+          runbook: <https://wiki.uw.systems/posts/open-telemetry-collector-tempo-runbooks-9otrgeem#head-collector-scaled-max|link>
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/BKf2sowmj2/opentelemetry-collector?from=now-2h&to=now&timezone=utc&refresh=1m|link>
+          priority: P3
+      - alert: TailSamplingCollectorScaledMax
+        expr: kube_horizontalpodautoscaler_status_current_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-tail-sampling-collector-scaling"}==kube_horizontalpodautoscaler_spec_max_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-tail-sampling-collector-scaling"}
+        for: 2h
+        labels:
+          team: otel
+        annotations:
+          summary: 'The tail sampling otel collector has been scaled to maximum replicas for 2h'
+          runbook: <https://wiki.uw.systems/posts/open-telemetry-collector-tempo-runbooks-9otrgeem#tail-sampling-collector-scaled-max|link>
+          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/BKf2sowmj2/opentelemetry-collector?from=now-2h&to=now&timezone=utc&refresh=1m|link>
+          priority: P3
+
+
