@@ -47,7 +47,7 @@ groups:
       # Main alert, intended for "high rate" inputs
       # kubernetes_logs cardinality is huge and is causing this alert to fail
       - alert: VectorFailingToInput2h
-        expr: 'sum by (component_id) (rate(vector_component_received_events_total{component_kind="source",component_id!~"kubernetes_logs|kubernetes_events|s3_msk|uw_link_firewall_events|careers_uw_co_uk_firewall_events|myaccount_uw_co_uk_firewall_events|uw_partners_firewall_events|gcp_audits|github_audits"}[5m])) == 0'
+        expr: 'sum by (component_id) (rate(vector_component_received_events_total{component_kind="source",component_id!~"kubernetes_logs|kubernetes_events|s3_msk|uw_link_firewall_events|careers_uw_co_uk_firewall_events|myaccount_uw_co_uk_firewall_events|uw_partners_firewall_events|dev_merit_uw_systems_firewall_events|gcp_audits|github_audits"}[5m])) == 0'
         for: 2h
         labels:
           team: infra
