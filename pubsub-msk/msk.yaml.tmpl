@@ -15,7 +15,7 @@ groups:
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&viewPanel=684"
           runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-under-replicated-partitions"
           priority: P1
-      - alert: MskAbnormalControllerState
+      - alert: MSKAbnormalControllerState
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="ActiveControllerCount", job=~"msk.*"}) != 1
         for: 5m
         labels:
