@@ -19,10 +19,3 @@ groups:
           impact: "Exhausting available disk space will most likely result in service disruption"
           action: "Investigate disk usage and adjust volume size if necessary."
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/919b92a8e8041bd567af9edab12c840c/kubernetes-persistent-volumes?orgId=1&refresh=10s&var-datasource=default&var-cluster=${ENVIRONMENT}-${PROVIDER}&var-namespace={{ $labels.namespace }}&var-volume={{ $labels.persistentvolumeclaim }}|link>
-      - alert: JobFailure
-        expr: sum(increase(kube_job_status_failed{namespace="otel"}[10m])) by (job_name) != 0
-        for: 1m
-        labels:
-          team: otel
-        annotations:
-          summary: "{{$labels.job_name}} failed to complete."
