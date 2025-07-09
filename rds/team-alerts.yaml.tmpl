@@ -165,7 +165,7 @@ groups:
           
       - alert: RDSDiskSpacePrediction
         expr: (predict_linear(min by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{})[30m:], 3600 * 4) < 1) + on (dbidentifier) group_left (team) uw_rds_owner_team
-        for: 10m
+        for: 30m
         annotations:
           summary: "{{ $labels.dbidentifier }} will run out of disk space in 4 hours"
           impact: "The PostgreSQL instance will stop to prevent data corruption if no more disk space is available."
