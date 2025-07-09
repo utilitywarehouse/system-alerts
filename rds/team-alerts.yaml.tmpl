@@ -164,7 +164,12 @@ groups:
             Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpaceLimit/|Qonto runbook> for details on how to reclaim space.
           
       - alert: RDSDiskSpacePrediction
-        expr: (predict_linear(min by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{})[30m:], 3600 * 4) < 1) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        # trigger only for instances without autoscaling enabled. 
+        # using `unless on(dbidentifier) rds_max_allocated_storage_bytes{}` in the expression as only instances with autoscaling enabled have the metric rds_max_allocated_storage_bytes
+        expr: |
+          (predict_linear(min by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{})[30m:], 3600 * 4) < 1)
+          unless on(dbidentifier) rds_max_allocated_storage_bytes{}
+          + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 10m
         annotations:
           summary: "{{ $labels.dbidentifier }} will run out of disk space in 4 hours"
@@ -172,7 +177,7 @@ groups:
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/a7049b32-6be3-42e5-aa9a-2879a14f46dd/rds-instance?orgId=1&refresh=1m&from=now-12h&to=now&viewPanel=panel-33&var-dbidentifier={{ $labels.dbidentifier }}|link>"
           qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|link>"
           action: |
-            Check that autoscaling is turned on for your instance.
+            Turn on storage autoscaling for your instance.
             See <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PIOPS.Autoscaling.html|AWS docs>.
             Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook> for details on how to action further.
 
