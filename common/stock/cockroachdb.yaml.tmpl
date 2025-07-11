@@ -46,6 +46,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cockroachdb
+          notification: default
         annotations:
           summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} only has {{ $value }}% space left in store number {{ $labels.store }}
           impact: Exhausting available disk space will make the db unavaiable
@@ -62,6 +63,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cockroachdb
+          notification: default
         annotations:
           summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}} only has {{ $value }}% space left as a cluster
           impact: Exhausting available disk space will make the db unavaiable
@@ -79,6 +81,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cockroachdb
+          notification: important
         annotations:
           summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}} has {{ $value }}% unavailable ranges. Most likely due to missing replicas.
           impact: The unavailable ranges cannot process queries (part of the database is inaccesible)
@@ -94,6 +97,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cockroachdb
+          notification: default
         annotations:
           summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} clock if offset by {{ $value }} miliseconds from the cluster mean
           impact: At 400ms offset, cockroach shuts itself down
@@ -109,6 +113,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cockroachdb
+          notification: default
         annotations:
           summary: CockroachDB {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} is using over {{$value}}% of the file descriptors
           impact: If 100% is reached, cockroach won't be able to keep running
