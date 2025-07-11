@@ -8,7 +8,7 @@ groups:
         # we're currently on 2xlarge instances that can handle 2000 partitions each
         expr: kafka_server_ReplicaManager_Value{name="PartitionCount", job="msk-shared"} >= 1950
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} has total {{ $value }} partitions. It is approaching the recommended partitions limit. See https://docs.aws.amazon.com/msk/latest/developerguide/bestpractices.html#partitions-per-broker"

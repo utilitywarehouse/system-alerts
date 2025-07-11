@@ -13,7 +13,7 @@ groups:
         labels:
           alerttype: altered_stock
           alertgroup: storage
-          team: otel
+          team: infra
         annotations:
           summary: "Volume {{$labels.namespace}}/{{$labels.persistentvolumeclaim}} will fill up in 72h"
           impact: "Exhausting available disk space will most likely result in service disruption"

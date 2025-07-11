@@ -8,7 +8,7 @@ groups:
         expr: kafka_topic_partition_under_replicated_partition{app_kubernetes_io_component="cluster-metrics", kubernetes_namespace='otel'} > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
           group: kafka
         annotations:
           summary: "In {{ $labels.kubernetes_namespace }} kafka topic {{ $labels.topic }}, partition {{ $labels.partition }} is under replicated"
@@ -18,7 +18,7 @@ groups:
         expr: sum by (app_kubernetes_io_name, kubernetes_namespace) (kafka_controller_kafkacontroller_activecontrollercount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'}) != 1
         for: 5m
         labels:
-          team: otel
+          team: infra
           group: kafka
         annotations:
           summary: "In {{ $labels.kubernetes_namespace }}, in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} active controllers"
@@ -28,7 +28,7 @@ groups:
         expr: sum by (app_kubernetes_io_name, kubernetes_namespace) (kafka_controller_kafkacontroller_offlinepartitionscount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'}) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
           group: kafka
         annotations:
           summary: "In {{ $labels.kubernetes_namespace }},in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} offline partitions. They have no leader"
@@ -38,7 +38,7 @@ groups:
         expr: kafka_server_replicamanager_total_underminisrpartitioncount_value{app_kubernetes_io_component="metrics", kubernetes_namespace='otel'} > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
           group: kafka
         annotations:
           summary: "In {{ $labels.kubernetes_namespace }}, in the cluster {{ $labels.app_kubernetes_io_name }}, there are {{ $value }} partitions under min In Sync Replica."
