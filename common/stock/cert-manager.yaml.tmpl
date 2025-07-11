@@ -10,6 +10,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cert-manager
+          notification: default
         annotations:
           summary: "Certificate {{ $labels.name }} in namespace {{ $labels.namespace }} is past renewal time"
           logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"kube-system\",kubernetes_container=\"cert-manager-controller\"} |=\"{{$labels.name}}\""}]'
