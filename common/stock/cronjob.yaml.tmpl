@@ -22,6 +22,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cronjob
+          notification: default
         annotations:
           summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} failed to complete a run within 24h of being scheduled"
           command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
@@ -56,6 +57,7 @@ groups:
         labels:
           alerttype: stock
           alertgroup: cronjob
+          notification: important
         annotations:
           summary: "CronJob {{$labels.namespace}}/{{$labels.cronjob}} has failed"
           command: "`kubectl --context ${ENVIRONMENT}-${PROVIDER} -n {{ $labels.namespace }} describe cronjob {{ $labels.cronjob }}`"
