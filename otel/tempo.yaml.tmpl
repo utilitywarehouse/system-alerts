@@ -13,14 +13,14 @@ groups:
             > 10
         for: 15m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Too many tempo request errors"
       - alert: TempoCompactorUnhealthy
         expr: max(tempo_ring_members{state="Unhealthy", app="tempo-compactor", kubernetes_namespace="otel"}) > 0
         for: 15m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Tempo compactors have been unhealthy for at least 15 minutes
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempocompactorunhealthy
@@ -28,7 +28,7 @@ groups:
         expr: max (tempo_ring_members{state="Unhealthy", app="tempo-distributor", kubernetes_namespace="otel"}) > 0
         for: 15m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Tempo distributors have been unhealthy for at least 15 minutes
           runbook: https://github.com/utilitywarehouse/dev-enablement-docs/blob/main/runbooks/otel.md#tempodistributorunhealthy
@@ -36,7 +36,7 @@ groups:
         expr: sum(kafka_consumergroup_lag{topic="otel.otlp_sampled_spans", consumergroup="processor-tempo"}) > 100000
         for: 6h
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: The tempo ingesting components (distributors & ingesters) have a lower throughput than the one of incoming spans. This causes delays in traces being ingested
           runbook: https://github.com/utilitywarehouse/dev-enablement-docs/blob/main/runbooks/otel.md#tempoprocessinglag
@@ -46,7 +46,7 @@ groups:
           sum(increase(tempodb_compaction_errors_total{kubernetes_namespace="otel"}[5m])) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Greater than 2 compactions have failed in the past hour
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempocompactionsfailing
@@ -56,7 +56,7 @@ groups:
           sum(increase(tempo_ingester_failed_flushes_total{kubernetes_namespace="otel"}[5m])) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Greater than 2 flushes have failed in the past hour
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempoingesterflushesfailing
@@ -66,7 +66,7 @@ groups:
           sum(increase(tempodb_blocklist_poll_errors_total{kubernetes_namespace="otel"}[5m])) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Greater than 2 polls have failed in the past hour
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempopollsfailing
@@ -76,7 +76,7 @@ groups:
           sum(increase(tempodb_blocklist_tenant_index_errors_total{kubernetes_namespace="otel"}[5m])) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Greater than 2 tenant index failures in the past hour
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempotenantindexfailures
@@ -86,7 +86,7 @@ groups:
           max(tempodb_blocklist_length{kubernetes_namespace="otel"}) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: No tenant index builders for tenant. Tenant index will quickly become stale
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#temponotenantindexbuilders
@@ -95,7 +95,7 @@ groups:
           max(tempodb_blocklist_tenant_index_age_seconds{kubernetes_namespace="otel"}) > 600
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Tenant index age is 600 seconds old
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempotenantindextooold
@@ -104,7 +104,7 @@ groups:
           avg(rate(tempo_ingester_bytes_received_total{kubernetes_namespace="otel", app="tempo-ingester"}[1m])) / 1024 / 1024 > 30
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: Ingesters are receiving more data/second than desired, add more ingesters
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempoprovisioningtoomanywrites
@@ -113,7 +113,7 @@ groups:
           sum(tempodb_compaction_outstanding_blocks{app="tempo-compactor", kubernetes_namespace="otel"}) / ignoring(tenant) group_left count(tempo_build_info{app="tempo-compactor", kubernetes_namespace="otel"}) > 100
         for: 6h
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: There are too many outstanding compaction blocks, increase compactor's CPU or add more compactors
           runbook: https://github.com/grafana/tempo/blob/main/operations/tempo-mixin/runbook.md#tempocompactorstoomanyoutstandingblocks

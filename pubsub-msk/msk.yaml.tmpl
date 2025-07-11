@@ -8,7 +8,7 @@ groups:
         expr: kafka_topic_partition_under_replicated_partition{app_kubernetes_io_component="msk-metrics", kubernetes_namespace='pubsub'} > 0
         for: 30m
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK instance {{ $labels.app_kubernetes_io_name }} kafka topic {{ $labels.topic }}, partition {{ $labels.partition }} is under replicated"
@@ -19,7 +19,7 @@ groups:
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="ActiveControllerCount", job=~"msk.*"}) != 1
         for: 5m
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} active controllers"
@@ -30,7 +30,7 @@ groups:
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="OfflinePartitionsCount", job=~"msk.*"}) > 0
         for: 5m
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} offline partitions. They have no leader"
@@ -41,7 +41,7 @@ groups:
         expr: kafka_server_ReplicaManager_Value{name="UnderMinIsrPartitionCount", job=~"msk.*"} > 0
         for: 5m
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} partitions under min In Sync Replica."
@@ -52,7 +52,7 @@ groups:
         # trigger on predict liner for 3d and when available space is less than 25%, as the autoscaling kicks in at 35%
         expr: predict_linear(node_filesystem_avail_bytes{job=~"msk-.*", mountpoint="/kafka/datalogs"}[1h], 72 * 3600) < 0 and (node_filesystem_avail_bytes{job=~"msk-.*", mountpoint="/kafka/datalogs"}/node_filesystem_size_bytes{job=~"msk-.*", mountpoint="/kafka/datalogs"} < 0.25)
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} will run out of space in less than 3 days. Autoscaling already kicked in."
@@ -63,7 +63,7 @@ groups:
         # keep the alert open for 5h, so that we'll catch all autoscaling events which have a cooldown period of 6h
         expr: node_filesystem_size_bytes{job=~"msk-.*", mountpoint="/kafka/datalogs"} != node_filesystem_size_bytes{job=~"msk-.*", mountpoint="/kafka/datalogs"} offset 5h
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the local storage size has changed automatically or manually. The terraform project might need update"
@@ -77,7 +77,7 @@ groups:
         # For not triggering during patching: using 2 x patch window (3 min) for a single broker
         for: 6m
         labels:
-          team: pubsub
+          team: infra
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} is using more than 60% CPU"

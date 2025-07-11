@@ -8,7 +8,7 @@ groups:
         expr: sum(rate(messaging_kafka_fetch_records_count_ratio_total{kubernetes_namespace="pubsub", app=~"example-consume-process-batch|example-consume-process-individually"}[5m])) == 0
         for: 30m
         labels:
-          team: pubsub
+          team: infra
           group: examples
         annotations:
           summary: "Example consumer {{ $labels.kubernetes_pod_name }} stopped consuming from topic {{ $labels.topic }}. Check the latest changes introduced in the app and cluster."
@@ -16,7 +16,7 @@ groups:
         expr: sum(rate(messaging_kafka_produce_records_count_ratio_total{kubernetes_namespace="pubsub", app="example-producer"}[5m])) == 0
         for: 30m
         labels:
-          team: pubsub
+          team: infra
           group: examples
         annotations:
           summary: "Example producer {{ $labels.kubernetes_pod_name }} stopped producing to topic {{ $labels.topic }}. Check the latest changes introduced in the app and cluster."
@@ -24,7 +24,7 @@ groups:
         expr: rate(messages_consumed_total{kubernetes_namespace="pubsub", status="success", app="example-proximo-consumer"}[5m]) == 0
         for: 30m
         labels:
-          team: pubsub
+          team: infra
           group: examples
         annotations:
           summary: "Example proximo consumer {{ $labels.kubernetes_pod_name }} stopped consuming from topic {{ $labels.topic }}. Check the latest changes introduced in the app, proximo server or cluster."
@@ -32,7 +32,7 @@ groups:
         expr: rate(messages_produced_total{kubernetes_namespace="pubsub", status="success", app="example-proximo-producer"}[5m]) == 0
         for: 30m
         labels:
-          team: pubsub
+          team: infra
           group: examples
         annotations:
           summary: "Example proximo producer {{ $labels.kubernetes_pod_name }} stopped producing to topic {{ $labels.topic }}. Check the latest changes introduced in the app, proximo server or cluster."

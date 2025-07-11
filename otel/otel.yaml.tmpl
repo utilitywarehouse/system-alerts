@@ -9,28 +9,28 @@ groups:
         expr: rate(otelcol_receiver_refused_spans{kubernetes_namespace="otel"}[5m]) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: "{{ $labels.pod }} collector is refusing trace spans from clients"
       - alert: ProcessorDroppedSpans
         expr: rate(otelcol_processor_dropped_spans{kubernetes_namespace="otel"}[5m]) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: "{{ $labels.pod }} collector is dropping trace spans"
       - alert: ExporterFailedToSendSpans
         expr: rate(otelcol_exporter_send_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: "{{ $labels.pod }} collector failing to export trace spans"
       - alert: ExporterFailedToEnqueueSpans
         expr: rate(otelcol_exporter_enqueue_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
         for: 5m
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: "{{ $labels.pod }} collector failing to enqueue trace spans. Check the logs"
   - name: otel-keda-hpa
@@ -39,7 +39,7 @@ groups:
         expr: kube_horizontalpodautoscaler_status_current_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}==kube_horizontalpodautoscaler_spec_max_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}
         for: 2h
         labels:
-          team: otel
+          team: infra
         annotations:
           summary: 'The head otel collector has been scaled to maximum replicas for 2h'
           runbook: <https://wiki.uw.systems/posts/open-telemetry-collector-tempo-runbooks-9otrgeem#head-collector-scaled-max|link>
