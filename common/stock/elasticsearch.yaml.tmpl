@@ -10,37 +10,19 @@ groups:
     # Uses metrics provided by the prometheus-community elasticsearch exporter:
     # https://github.com/prometheus-community/elasticsearch_exporter
     rules:
-      - alert: ElasticsearchClusterBroken
-        expr: |
-          label_replace(
-            (sum by (kubernetes_namespace, color, cluster) (elasticsearch_cluster_health_status{color="red"})  > 0)
-            ,"namespace","$1","kubernetes_namespace","(.*)"
-          ) * on (namespace) group_left(team) uw_namespace_oncall_team
-        for: 15m
-        labels:
-          alerttype: stock
-          alertgroup: elasticsearch
-          notification: important
-        annotations:
-          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
-          impact: Primary shards are missing or unallocated - operations involving those shards will fail
-          action: Check the Elasticsearch documentation for the debug and recovery options
-          link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
       - alert: ElasticsearchClusterDegraded
         expr: |
           label_replace(
-            (sum by (kubernetes_namespace, color, cluster) (elasticsearch_cluster_health_status{color="yellow"})  > 0)
+            (sum by (kubernetes_namespace, color, cluster) (elasticsearch_cluster_health_status{color!="green"})  > 0)
             ,"namespace","$1","kubernetes_namespace","(.*)"
           ) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 15m
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
-          impact: Replica shards are missing or unallocated - risk of data loss and degraded cluster performance
+          impact: Shards missing or unallocated- risk of data loss, degraded cluster performance, possible search and retrieval issues
           action: Check the Elasticsearch documentation for the debug and recovery options
           link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
@@ -54,7 +36,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} circuit breaker tripped.
           impact: This means Elasticsearch stopped processing requests to prevent out of memory errors.
@@ -70,7 +51,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has pending tasks.
           impact: Elasticsearch has list of pending tasks since 15 minutes. Cluster works slowly.
@@ -86,7 +66,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of available disk space.
           impact: Cluster might crash soon
@@ -98,37 +77,19 @@ groups:
     # which is the one used by this elasticsearch image widely used at UW :
     # https://github.com/utilitywarehouse/uw-elasticsearch
     rules:
-      - alert: ElasticsearchClusterBroken
-        expr: |
-          label_replace(
-            (sum by (kubernetes_namespace, color, cluster) (es_cluster_health_status{es_cluster_health_status="RED"})  > 0)
-            ,"namespace","$1","kubernetes_namespace","(.*)"
-          ) * on (namespace) group_left(team) uw_namespace_oncall_team
-        for: 15m
-        labels:
-          alerttype: stock
-          alertgroup: elasticsearch
-          notification: important
-        annotations:
-          summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
-          impact: Primary shards are missing or unallocated - operations involving those shards will fail
-          action: Check the Elasticsearch documentation for the debug and recovery options
-          link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
       - alert: ElasticsearchClusterDegraded
         expr: |
           label_replace(
-            (sum by (kubernetes_namespace, color, cluster) (es_cluster_health_status{es_cluster_health_status="YELLOW"})  > 0)
+            (sum by (kubernetes_namespace, color, cluster) (es_cluster_health_status{es_cluster_health_status!="GREEN"})  > 0)
             ,"namespace","$1","kubernetes_namespace","(.*)"
           ) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 15m
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} status is {{$labels.color}}
-          impact: Replica shards are missing or unallocated - risk of data loss and degraded cluster performance
+          impact: Shards missing or unallocated- risk of data loss, degraded cluster performance, possible search and retrieval issues
           action: Check the Elasticsearch documentation for the debug and recovery options
           link: https://www.elastic.co/guide/en/elasticsearch/reference/current/red-yellow-cluster-status.html
           dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/4yyL6dBMk/elasticsearch-overview?orgId=1&refresh=1m&from=now-12h&to=now&var-namespace={{ $labels.namespace }}|link>
@@ -142,7 +103,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} circuit breaker tripped.
           impact: This means Elasticsearch stopped processing requests to prevent out of memory errors.
@@ -158,7 +118,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} has pending tasks.
           impact: Elasticsearch has list of pending tasks since 15 minutes. Cluster works slowly.
@@ -174,7 +133,6 @@ groups:
         labels:
           alerttype: stock
           alertgroup: elasticsearch
-          notification: default
         annotations:
           summary: Elasticsearch cluster {{$labels.cluster}} in namespace {{$labels.namespace}} uses over 90% of available disk space.
           impact: Cluster might crash soon
