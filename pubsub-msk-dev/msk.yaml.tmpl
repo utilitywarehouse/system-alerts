@@ -5,7 +5,7 @@ groups:
   - name: pubsub-msk
     rules:
       - alert: MSKSharedPartitionsLimit
-        expr: kafka_server_ReplicaManager_Value{name="PartitionCount", job="msk-shared"} >= 950
+        expr: kafka_server_ReplicaManager_Value{name="PartitionCount", job="msk-shared"} >= 1950
         labels:
           team: infra
           group: kafka
