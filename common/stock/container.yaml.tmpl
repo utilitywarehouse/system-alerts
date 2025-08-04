@@ -71,7 +71,7 @@ groups:
           action: "Investigate CPU consumption and adjust pods resources if needed."
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&from=now-12h&to=now&var-instance=All&var-namespace={{ $labels.namespace }}|link>"
       - alert: ContainerOOMing
-        expr: '(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod) (kube_pod_container_status_ready == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team'
+        expr: '(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} and on (container,pod,namespace) (kube_pod_container_status_ready == 0)) * on (namespace) group_left(team) uw_namespace_oncall_team'
         for: 5m
         labels:
           alerttype: stock
