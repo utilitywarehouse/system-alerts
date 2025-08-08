@@ -198,9 +198,12 @@ groups:
         annotations:
           summary: "{{ $labels.dbidentifier }} has unapplied parameters"
           impact: "RDS instance is running with outdated configuration"
-          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|link>"
+          qonto_runbook: "<https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSUnappliedParameters/|link>"
           action: |
-            Apply the new parameters by restarting the instance
+            Apply the new configuration by restarting the instance.
             Find a suitable time slot for this, as it will cause a momentary outage.
-            Check the <https://qonto.github.io/database-monitoring-framework/latest/runbooks/rds/RDSDiskSpacePrediction/|Qonto runbook>
-            for details on tracking what changed.
+            For checking what pending changes are there for your instance, run
+            ```
+            DB_IDENTIFIER=your-instance-name
+            aws rds describe-db-instances --db-instance-identifier ${DB_IDENTIFIER} --query '{PendingModifiedValues: DBInstances[0].PendingModifiedValues, ParameterGroup: DBInstances[0].DBParameterGroups[0]}'
+            ```
