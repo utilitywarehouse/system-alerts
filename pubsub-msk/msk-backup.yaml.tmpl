@@ -16,5 +16,6 @@ groups:
           summary: "The MSK backup task has stopped"
           impact: "The MSK topics are not being backed up"
           dashboard: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/connects/msk-backup-connect/connectors/msk-s3-backup-sink-all-parquet"
+          runbook: '<https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-backup-task-stopped|link>'
           doc: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#ht59o-msk-data-backup"
           action: "Check the source error in the UI. Restart the task from the UI"
