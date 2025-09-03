@@ -5,17 +5,17 @@ groups:
   - name: msk-backup
     rules:
       - alert: MSKBackupTaskStopped
-        # This expression is temporary until we figure out metrics from the connect task itself.
-        # It is not ideal, as we're alerting if the backup connector hasn't consumed anything for an hour, which may be because no app has produced on any topic for 1h.
-        # Checked the query so far, and it picked up only the periods when the task stopped due to connector issue.
-        expr: sum(rate(kafka_consumergroup_current_offset{consumergroup="pubsub.msk-backup-kafka-connect"}[60m])) == 0
+        # Alert if any task of the backup connector stopped for 5 minutes
+        expr: sum(kafka_connect_connect_worker_metrics_connector_failed_task_count{app_kubernetes_io_name="msk-backup-kafka-connect-cluster", connector="msk-s3-backup-sink-all-parquet"}) > 0
+        for: 5m
         labels:
           team: infra
           group: kafka
         annotations:
           summary: "The MSK backup task has stopped"
           impact: "The MSK topics are not being backed up"
-          dashboard: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/connects/msk-backup-connect/connectors/msk-s3-backup-sink-all-parquet"
+          ui: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/connects/msk-backup-connect/connectors/msk-s3-backup-sink-all-parquet"
+          dashboard: '<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/AEaSQ97mz/kafka-connect-cluster?orgId=1&from=now-30m&to=now&timezone=utc&var-kafka_connect_cluster_id=$__all&var-instance=$__all&var-connector=msk-s3-backup-sink-all-parquet&refresh=1m|link>'
           runbook: '<https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-backup-task-stopped|link>'
           doc: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#ht59o-msk-data-backup"
           action: "Check the source error in the UI. Restart the task from the UI"
