@@ -5,16 +5,16 @@ groups:
   - name: VaultSetup
     rules:
       - alert: VaultHighGCDuration
-        expr: 'increase(vault_runtime_total_gc_pause_ns{kubernetes_namespace="sys-vault"}[1m])/ 1000 > 2000'
+        expr: increase(vault_runtime_total_gc_pause_ns{kubernetes_namespace="sys-vault"}[5m])/ 5000000000 > 5
         for: 10m
         labels:
           team: infra
         annotations:
-          description: "{{ $labels.kubernetes_pod_name }} spent more than 2sec/min running GC"
+          description: "{{ $labels.kubernetes_pod_name }} spent more than 5sec/min running GC"
           summary: "{{ $labels.kubernetes_pod_name }} is taking too long to GC"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
       - alert: VaultScarceLeaderContacts
-        expr: 'vault_raft_leader_lastContact{quantile="0.99",kubernetes_namespace="sys-vault"} > 200'
+        expr: vault_raft_leader_lastContact{quantile="0.99",kubernetes_namespace="sys-vault"} > 200
         for: 10m
         labels:
           team: infra
@@ -24,7 +24,7 @@ groups:
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
       # Adapted from https://github.com/giantswarm/vault-exporter/blob/master/vault-mixin/alerts.libsonnet
       - alert: VaultUninitialized
-        expr: 'vault_initialized{kubernetes_namespace="sys-vault"} != 1'
+        expr: up{kubernetes_namespace="sys-vault",app="vault",vault_initialized="false"}
         for: 10m
         labels:
           team: infra
@@ -33,7 +33,7 @@ groups:
           summary: "{{ $labels.kubernetes_pod_name }} is uninitialized"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
       - alert: VaultSealed
-        expr: 'vault_sealed{kubernetes_namespace="sys-vault"} != 0'
+        expr: up{kubernetes_namespace="sys-vault",app="vault",vault_sealed="true"}
         for: 10m
         labels:
           team: infra
@@ -42,7 +42,7 @@ groups:
           summary: "{{ $labels.kubernetes_pod_name }} is sealed"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
       - alert: VaultActiveCount
-        expr: 'count(vault_standby{kubernetes_namespace="sys-vault"} == 0) != 1'
+        expr: count(vault_core_active{kubernetes_namespace="sys-vault"} == 1) != 1
         for: 10m
         labels:
           team: infra
@@ -51,21 +51,11 @@ groups:
             More or less than 1 active instance typically indicates a problem with leader election.
           summary: "There are {{ $value }} active Vault instance(s)"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
-      - alert: VaultUp
-        expr: 'vault_up{kubernetes_namespace="sys-vault"} != 1'
+      - alert: VaultExporterDown
+        expr: up{kubernetes_namespace="sys-vault",app="vault"} == 0 or absent(up{kubernetes_namespace="sys-vault",app="vault"})
         for: 10m
         labels:
           team: infra
         annotations:
-          description: |
-            The exporter runs as a sidecar and should be able to connect to port 8200 on localhost.
-          summary: "Vault exporter for '{{ $labels.kubernetes_pod_name }}' cannot talk to Vault."
+          summary: "Vault not exporting metrics, we can't check vault state"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/1ysHZE2Wz/vault|link>"
-      - alert: VaultServerBlackboxTargetDown
-        expr: 'up{job="vault-server"} != 1'
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          description: "{{ $labels.instance }} http probe job reports down more than 5 minutes."
-          summary: "Vault server http probe job down"
