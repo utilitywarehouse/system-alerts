@@ -33,16 +33,3 @@ groups:
           team: infra
         annotations:
           summary: "{{ $labels.pod }} collector failing to enqueue trace spans. Check the logs"
-  - name: otel-keda-hpa
-    rules:
-      - alert: HeadCollectorScaledMax
-        expr: kube_horizontalpodautoscaler_status_current_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}==kube_horizontalpodautoscaler_spec_max_replicas{namespace="otel",horizontalpodautoscaler="keda-hpa-otel-collector-scaling"}
-        for: 2h
-        labels:
-          team: infra
-        annotations:
-          summary: 'The head otel collector has been scaled to maximum replicas for 2h'
-          runbook: <https://wiki.uw.systems/posts/open-telemetry-collector-tempo-runbooks-9otrgeem#head-collector-scaled-max|link>
-          dashboard: <https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/BKf2sowmj2/opentelemetry-collector?from=now-2h&to=now&timezone=utc&refresh=1m|link>
-          priority: P3
-
