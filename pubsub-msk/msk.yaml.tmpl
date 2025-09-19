@@ -13,7 +13,7 @@ groups:
         annotations:
           summary: "In MSK instance {{ $labels.app_kubernetes_io_name }} kafka topic {{ $labels.topic }}, partition {{ $labels.partition }} is under replicated"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&viewPanel=684"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-under-replicated-partitions"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-under-replicated-partitions"
           priority: P1
       - alert: MSKAbnormalControllerState
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="ActiveControllerCount", job=~"msk.*"}) != 1
@@ -24,7 +24,7 @@ groups:
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} active controllers"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-abnormal-controller-state"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-abnormal-controller-state"
           priority: P1
       - alert: MSKOfflinePartitions
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="OfflinePartitionsCount", job=~"msk.*"}) > 0
@@ -35,7 +35,7 @@ groups:
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} offline partitions. They have no leader"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-offline-partitions"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-offline-partitions"
           priority: P1
       - alert: MSKUnderMinIsrPartitionCount
         expr: kafka_server_ReplicaManager_Value{name="UnderMinIsrPartitionCount", job=~"msk.*"} > 0
@@ -46,7 +46,7 @@ groups:
         annotations:
           summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} partitions under min In Sync Replica."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-under-min-isr-partition-count"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-under-min-isr-partition-count"
           priority: P1
       - alert: MSKLowStorage
         # trigger on predict liner for 3d and when available space is less than 25%, as the autoscaling kicks in at 35%
@@ -56,7 +56,7 @@ groups:
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} will run out of space in less than 3 days. Autoscaling already kicked in."
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-low-storage"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-low-storage"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&refresh=30s&viewPanel=83"
           priority: P1
       - alert: MSKStorageChanged
@@ -67,7 +67,7 @@ groups:
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the local storage size has changed automatically or manually. The terraform project might need update"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#msk-storage-changed"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-storage-changed"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&refresh=30s&viewPanel=83"
           priority: P2
       - alert: MSKCPULoad
@@ -81,6 +81,6 @@ groups:
           group: kafka
         annotations:
           summary: "In MSK cluster {{ $labels.job }}, the instance {{ $labels.instance}} is using more than 60% CPU"
-          runbook: "https://wiki.uw.systems/posts/shared-kafka-on-aws-msk-runbook-10pijp5z#mskcpu-load"
+          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#mskcpu-load"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&refresh=30s&viewPanel=81"
           priority: P2
