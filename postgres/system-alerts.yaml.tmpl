@@ -1,0 +1,36 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: postgres-exporter
+    rules:
+      - alert: "PostgresExporterDown"
+        expr: |
+          up{job="postgres-exporter"} == 0
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "Postgres Exporter is down"
+          impact: "Postgres instances are not monitored"
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/SQLExporterDown
+          action: |
+            Check if postgres-exporter is running in sys-prom namespace.
+            Check the logs.
+            Restart pods.
+
+      - alert: "PostgresExporterScrapingLimit"
+        expr: |
+          avg_over_time(pg_exporter_last_scrape_duration_seconds{job="postgres-exporter", instance!=""}[10m]) > 30
+        for: 5m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Postgres Exporter scraping is taking a long time"
+          impact: "Postgres instances are not monitored,"
+          runbook_url: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/SQLExporterScrapingLimit
+          action: |
+            Check postgres-exporter logs and resource usage.
+            Check postgres database for any long-running queries.
+            Restart pods.
