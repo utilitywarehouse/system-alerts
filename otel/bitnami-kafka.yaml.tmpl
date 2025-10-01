@@ -6,7 +6,7 @@ groups:
     rules:
       - alert: BitnamiKafkaUnderReplicatedPartitions
         expr: kafka_topic_partition_under_replicated_partition{app_kubernetes_io_component="cluster-metrics", kubernetes_namespace='otel'} > 0
-        for: 5m
+        for: 30m
         labels:
           team: infra
           group: kafka
