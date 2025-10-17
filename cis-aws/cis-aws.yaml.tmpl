@@ -5,7 +5,7 @@ groups:
   - name: infra-aws
     rules:
       - alert: AWSNoMFAConsoleSignin
-        expr: "cisbenchmark_sane_no_mfaconsole_signin_sum >= 1"
+        expr: "cisbenchmark_no_mfaconsole_signin_sum >= 1"
         for: 1m
         labels:
           team: infra
