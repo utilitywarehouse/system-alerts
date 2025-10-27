@@ -20,7 +20,7 @@ groups:
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>"
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
       - alert: TerraformApplierGitMirrorError
-        expr: "time() - max by (kubernetes_namespace,kubernetes_pod_name,repo) (terraform_applier_git_last_mirror_timestamp{}) > 600"
+        expr: "time() - max by (kubernetes_namespace,kubernetes_pod_name,repo) (terraform_applier_git_last_mirror_timestamp{}) > 3600"
         for: 10m
         labels:
           team: infra
