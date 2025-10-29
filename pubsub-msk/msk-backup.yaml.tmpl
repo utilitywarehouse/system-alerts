@@ -6,16 +6,16 @@ groups:
     rules:
       - alert: MSKBackupTaskStopped
         # Alert if any task of the backup connector stopped for 5 minutes
-        expr: sum(kafka_connect_connect_worker_metrics_connector_failed_task_count{app_kubernetes_io_name="msk-backup-kafka-connect-cluster", connector="msk-s3-backup-sink-all-parquet"}) > 0
+        expr: sum(kafka_connect_connect_worker_metrics_connector_failed_task_count{app_kubernetes_io_name="msk-backup-kafka-connect-cluster", connector=~"msk-s3-backup-sink-all-parquet-cold|msk-s3-backup-sink-all-parquet-hot"}) by (connector) > 0
         for: 5m
         labels:
           team: infra
           group: kafka
         annotations:
-          summary: "The MSK backup task has stopped"
-          impact: "The MSK topics are not being backed up"
-          ui: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/connects/msk-backup-connect/connectors/msk-s3-backup-sink-all-parquet"
-          dashboard: '<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/AEaSQ97mz/kafka-connect-cluster?orgId=1&from=now-30m&to=now&timezone=utc&var-kafka_connect_cluster_id=$__all&var-instance=$__all&var-connector=msk-s3-backup-sink-all-parquet&refresh=1m|link>'
+          summary: "Tasks in the MSK backup connector {{ $labels.connector }} failed"
+          impact: "MSK topics are not being backed up"
+          ui: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/connects/msk-backup-connect/connectors/{{ $labels.connector }}"
+          dashboard: '<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/AEaSQ97mz/kafka-connect-cluster?orgId=1&from=now-30m&to=now&timezone=utc&var-kafka_connect_cluster_id=$__all&var-instance=$__all&var-connector={{ $labels.connector }}&refresh=1m|link>'
           runbook: '<https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-backup-task-stopped|link>'
           doc: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#ht59o-msk-data-backup"
           action: "Check the source error in the UI. Restart the task from the UI"
