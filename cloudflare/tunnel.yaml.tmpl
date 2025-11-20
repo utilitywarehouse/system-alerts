@@ -1,0 +1,92 @@
+groups:
+  - name: cloudflare-tunnel
+    rules:
+      - alert: CloudflaredTunnelDown
+        expr: "cloudflared_tunnel_ha_connections == 0"
+        for: 1m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare Tunnel is down"
+          description: "Tunnel instance {{ $labels.kubernetes_pod_name }} has 0 connections to the Cloudflare Edge."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredTunnelRedundancyLost
+        expr: "cloudflared_tunnel_ha_connections < 2"
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare Tunnel redundancy degraded"
+          description: "Tunnel instance {{ $labels.kubernetes_pod_name }} has only {{ $value }} active connections (expected 4)."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredConfigPushesError
+        expr: "increase(cloudflared_config_local_config_pushes_errors[10m]) > 0"
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflared config rule push errors"
+          description: "Tunnel instance {{ $labels.kubernetes_pod_name }} has experienced issues pushing rules to the cloudflared daemon."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredHighErrorRate
+        expr: |
+          (
+          sum(rate(cloudflared_tunnel_response_by_code{status_code=~"5.."}[5m]))
+          / 
+          sum(rate(cloudflared_tunnel_total_requests[5m]))
+          ) > 0.5
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "High 5xx error rate on Cloudflare Tunnel"
+          description: 'Tunnel {{ $labels.kubernetes_pod_name }} is experiencing a {{ $value | printf "%.2f" }}% 5xx error rate.'
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredNoTrafficDetected
+        expr: "rate(cloudflared_tunnel_total_requests[5m]) == 0"
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare Tunnel has zero requests"
+          description: "The proxied request rate for Cloudflare tunnel {{ $labels.kubernetes_pod_name }} has dropped to zero for 5 minutes."
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredSignificantTrafficDrop
+        expr: |
+          ( 
+            sum(rate(cloudflared_tunnel_total_requests[5m]))
+            / 
+            sum(rate(cloudflared_tunnel_total_requests[5m] offset 1h))
+          ) < 0.3
+          and
+          sum(rate(cloudflared_tunnel_total_requests[5m] offset 1h)) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare Tunnel traffic dropped significantly"
+          description: 'Proxied request volume for Cloudflare tunnels is {{ $value | printf "%.2f" }}% of the volume from 1 hour ago. Expected traffic is down by > 70%.'
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
