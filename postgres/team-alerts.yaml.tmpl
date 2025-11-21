@@ -1,0 +1,153 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+    # Uses `uw_rds_owner_team` recording rule created in `system-alerts/rds` for team detection.
+    # Based on https://github.com/qonto/database-monitoring-framework/blob/main/charts/prometheus-postgresql-alerts/values.yaml
+  - name: Postgres
+    rules:
+      - alert: "PostgreSQLInactiveLogicalReplicationSlot"
+        expr: |
+          (
+            max by (instance, slot_name, dbidentifier) (
+              pg_replication_slots_active{slot_type="logical"}
+            )
+            + on (dbidentifier) group_left (team) uw_rds_owner_team
+          ) < 1
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Logical replication slot {{ $labels.slot_name }} on {{ $labels.instance }} is inactive"
+          impact: "Potential disk space saturation and replication slot no longer being usable."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLInactiveLogicalReplicationSlot
+          action: |
+            Check the replication slot disk space consumption trend.
+            Identify the non-running logical replication slot.
+            Investigate and fix the replication slot client.
+
+      - alert: "PostgreSQLInactivePhysicalReplicationSlot"
+        expr: |
+          (
+            max by (instance, slot_name, dbidentifier) (
+              pg_replication_slots_active{slot_type="physical"}
+            )
+            + on (dbidentifier) group_left (team)
+              uw_rds_owner_team
+          ) < 1
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Physical replication slot {{ $labels.slot_name }} on {{ $labels.instance }} is inactive"
+          impact: "Potential disk space saturation and replication slot no longer being usable."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLInactivePhysicalReplicationSlot
+          action: |
+            Check the replication slot disk space consumption trend.
+            Check replica lag and instance logs.
+            Increase disk space on the primary instance if necessary.
+
+      - alert: "PostgreSQLReplicationSlotStorageLimit"
+        expr: |
+          (
+            max by (instance, slot_name, dbidentifier) (pg_replication_slots_available_storage_percent{})
+              + on (dbidentifier) group_left (team) uw_rds_owner_team
+          ) < 20
+        for: 5m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "{{ $labels.slot_name }} on {{ $labels.instance }} is close to its storage limit"
+          impact: "Potential disk space saturation and replication slot no longer being usable."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLReplicationSlotStorageLimit
+          action: |
+            Check replication slot client logs and performances.
+            Correct the root cause on replication slot client.
+            Increase max_slot_wal_keep_size to allow more disk space for the replication slot (check free storage first!).
+            Increase server storage.
+
+      - alert: "PostgreSQLInvalidIndex"
+        expr: |
+          (
+            count by (datname, relname, indexrelname, server, dbidentifier) (
+              pg_stat_user_indexes_idx_scan{indisvalid="false"}
+            )
+            + on (dbidentifier) group_left (team) uw_rds_owner_team
+          ) > 0
+        for: 1h
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary:
+            "Index {{ $labels.indexrelname }} of {{ $labels.relname }} table on {{ $labels.datname
+            }} database on {{ $labels.instance }} is invalid"
+          impact: "PostgreSQL does not use the index for query execution, which could degrade query performances."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLInvalidIndex
+          action: |
+            Diagnose the root cause.
+            Delete and recreate the index.
+
+      - alert: "PostgreSQLLongRunningQueries"
+        expr: |
+          (
+            pg_long_running_transactions_oldest_timestamp_seconds
+            + on (dbidentifier) group_left (team) uw_rds_owner_team
+          ) > 1800
+        for: 1m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Long running query on {{ $labels.instance }} for >30 minutes."
+          impact: "Potential block on other queries, WAL file rotation and vacuum operations."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLLongRunningQueries
+          action: |
+            Identify and diagnose the blocking queries.
+            Terminate these queries if you are sure that is safe to do.
+
+      - alert: "PostgreSQLMaxConnections"
+        expr: |
+          (
+            (
+              max by (server) (pg_stat_connections_count{job="postgres-exporter"})
+              /
+              max by (server) (pg_settings_max_connections{job="postgres-exporter"})
+            ) * 100
+          )
+          + on (dbidentifier) group_left(team) uw_rds_owner_team
+          > 80
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "{{ $labels.instance }} uses >80% of the maximum database connections"
+          impact: "New clients might not be able to connect."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/PostgreSQLMaxConnections
+          action: |
+            Reduce number of clients.
+            Increase max_connections (check memory first!).
+
+      - alert: "PostgresExporterMissingTarget"
+        expr: |
+          (
+            min(up{job="postgres-exporter", instance!=""}) by (instance, dbidentifier)
+            + on (dbidentifier) group_left (team) uw_rds_owner_team
+          ) == 0
+        for: 15m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Postgres Exporter scrape for {{ $labels.instance }} failed"
+          impact: "{{ $labels.instance }} instance is not monitored."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/SQLExporterMissingTarget
+          action: |
+            Check postgres-exporter logs in sys-prom namespace.
+            Check if the postgres instance is down.
+            Check postgres database connection logs.
+            Check if there's an issue with the prometheus_postgres_exporter user.
