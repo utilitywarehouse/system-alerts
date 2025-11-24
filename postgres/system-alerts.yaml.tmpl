@@ -5,8 +5,7 @@ groups:
   - name: postgres-exporter
     rules:
       - alert: "PostgresExporterDown"
-        expr: |
-          expr: absent(postgres_exporter_build_info)
+        expr: absent(postgres_exporter_build_info)
         for: 15m
         labels:
           team: infra
