@@ -135,10 +135,10 @@ groups:
       - alert: "PostgresExporterMissingTarget"
         expr: |
           (
-            min(up{job="postgres-exporter", instance!=""}) by (instance, dbidentifier)
+            pg_up{job="postgres-exporter"}
             + on (dbidentifier) group_left (team) uw_rds_owner_team
           ) == 0
-        for: 15m
+        for: 10m
         labels:
           alerttype: stock
           alertgroup: Postgres
@@ -146,6 +146,23 @@ groups:
           summary: "Postgres Exporter scrape for {{ $labels.instance }} failed"
           impact: "{{ $labels.instance }} instance is not monitored."
           qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/SQLExporterMissingTarget
+          action: |
+            Check postgres-exporter logs in sys-prom namespace.
+            Check if the postgres instance is down.
+            Check postgres database connection logs.
+            Check if there's an issue with the prometheus_postgres_exporter user.
+
+      - alert: "PostgresExporterScrapingLimit"
+        expr: |
+          avg_over_time(pg_exporter_last_scrape_duration_seconds{job="postgres-exporter", instance!=""}[10m]) > 30
+        for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: Postgres
+        annotations:
+          summary: "Postgres Exporter scraping for {{ $labels.instance }} is taking a long time"
+          impact: "{{ $labels.instance }} instance is not monitored."
+          qonto_runbook: https://qonto.github.io/database-monitoring-framework/latest/runbooks/postgresql/SQLExporterScrapingLimit
           action: |
             Check postgres-exporter logs in sys-prom namespace.
             Check if the postgres instance is down.
