@@ -7,7 +7,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "({{$labels.account}})There are unhealthy load balancer."
+          summary: "({{$labels.account}})There is unhealthy load balancer."
           description: "The load balancer {{$labels.load_balancer_name}} in zone {{$labels.zone}} is unhealthy for last 10m."
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
           uw-system-dev: "https://dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/home/domains"
