@@ -36,3 +36,53 @@ groups:
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
           uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
           uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflareHighHTTPErrorCodes
+        expr: |
+          (
+          sum by (zone) (rate(cloudflare_zone_requests_status{status=~"5.."}[5m]))
+          / 
+          sum by (zone) (rate(cloudflare_zone_requests_total[5m]))
+          ) > 0.3
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: A high number of 5xx HTTP status codes are occurring.
+          description: The zone {{$labels.zone}} is experiencing a {{ $value | printf "%.2f" }}% 5xx error rate.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          uw-system-dev: "https://dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/home/domains"
+          uw-system-prod: "https://dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/home/domains"
+
+      - alert: CloudflareHighHTTPOriginErrorCodes
+        expr: |
+          (
+          sum by (zone) (rate(cloudflare_zone_requests_origin_status_country_host{status=~"5.."}[5m]))
+          / 
+          sum by (zone) (rate(cloudflare_zone_requests_origin_status_country_host[5m]))
+          ) > 0.3
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: A high number of 5xx HTTP status codes are occurring (Origin).
+          description: The zone {{$labels.zone}} is experiencing a {{ $value | printf "%.2f" }}% 5xx error rate for non cached requests.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          uw-system-dev: "https://dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/home/domains"
+          uw-system-prod: "https://dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/home/domains"
+
+      - alert: CloudflareSignificantOriginTrafficDrop
+        expr: |
+          ( 
+            sum by (zone) (rate(cloudflare_zone_requests_origin_status_country_host[5m]))
+            / 
+            sum by (zone) (rate(cloudflare_zone_requests_origin_status_country_host[5m] offset 1d))
+          ) < 0.3
+          and
+          sum by (zone) (rate(cloudflare_zone_requests_origin_status_country_host[5m] offset 1d)) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare zone {{$labels.zone}} origin traffic dropped significantly"
+          description: 'Origin Request volume for Cloudflare zone {{$labels.zone}} is {{ $value | printf "%.2f" }}% of the volume from 24 hours ago. Expected traffic is down by > 70%.'
