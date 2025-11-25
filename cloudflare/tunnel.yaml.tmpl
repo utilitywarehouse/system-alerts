@@ -77,3 +77,23 @@ groups:
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",container=\"tunnel\"}"}]|link>'
           uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
           uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+
+      - alert: CloudflaredSignificantTrafficIncreased
+        expr: |
+          ( 
+            sum(rate(cloudflared_tunnel_total_requests[5m]))
+            / 
+            sum(rate(cloudflared_tunnel_total_requests[5m] offset 1d))
+          ) > 1.5
+          and
+          sum(rate(cloudflared_tunnel_total_requests[5m] offset 1d)) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Cloudflare Tunnel traffic increased significantly"
+          description: 'Proxied request volume for Cloudflare tunnels is {{ $value | printf "%.2f" }}% of the volume from 24 hours ago. Expected traffic is increased by > 150%.'
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",container=\"tunnel\"}"}]|link>'
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
