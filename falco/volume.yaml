@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-rule
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: render-alerts
+          volumeMounts:
+            - name: rule-templates-falco
+              mountPath: /var/thanos/rule-templates/falco
+      volumes:
+        - name: rule-templates-falco
+          configMap:
+            name: alert-templates-falco

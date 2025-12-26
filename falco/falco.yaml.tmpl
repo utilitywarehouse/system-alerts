@@ -1,0 +1,16 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: falco
+    # Based on https://stackoverflow.com/a/68718620
+    rules:
+      - alert: FalcoRuleViolation
+        expr: (sum(falco_events{} or falco_events{} * 0) by (k8s_pod_name, k8s_ns_name, priority, rule) - sum(falco_events{} offset 5m or falco_events{} * 0) by (k8s_pod_name,  k8s_ns_name, priority, rule)) > 0
+        for: 1m
+        labels:
+          team: infra
+        annotations:
+          summary: Falco Rule Violation
+          impact: "Rule: {{ $labels.rule }} violation in {{ $labels.k8s_ns_name }}/{{ $labels.k8s_pod_name }}, priority: {{ $labels.priority }}"
+          action: For more information check https://falco-falcosidekick-ui.$ENVIRONMENT.$PROVIDER.uw.systems/events
