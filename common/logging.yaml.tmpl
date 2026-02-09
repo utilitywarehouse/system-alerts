@@ -12,21 +12,6 @@ groups:
         annotations:
           summary: "{{ $labels.instance }} log forwarder is not exposing metrics for 30m"
           action: "ssh into {{ $labels.instance }} and make sure `promtail.service` is running"
-      - alert: PromtailThrottling
-        expr: 'label_replace(rate(logentry_dropped_lines_by_label_total{label_name="limit_key", label_value=~"kube-system.*|sys-.*"}[5m]) > 10, "label_namespace", "$1", "label_value", `(.*)\/(.*)`)'
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.label_value }} is throttling and dropping logs"
-          dashboard: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-6h","now","Loki",{"expr":"sum(count_over_time({kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.label_namespace}}\"}[5m]))by(container)"}]|link>'
-      - alert: PromtailDroppingSystemLogs(external)
-        expr: 'rate(promtail_dropped_entries_total{reason="ingester_error"}[5m]) > 0'
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.instance }} is being noisy and dropping logs"
       - alert: VectorFailingToSendToLoki
         # Checking that buffers are full (close to the max 500 events). Note
         # that buffers won't get full unless logs are not getting through at
