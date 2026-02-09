@@ -55,3 +55,16 @@ groups:
           summary: "Vector is not receiving logs"
           description: "Vector received no logs from {{ $labels.component_id }} for 2h"
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
+      - alert: VectorThrottlingTooManyLogs
+        expr: rate(vector_component_discarded_events_total{component_type="throttle"}[10m])> 5000
+        for: 1h
+        labels:
+          team: infra
+        annotations:
+          summary: "Vector is being overwhelmed by noisy logs (>5000 log/s for 1h)"
+          description: "Logs are being throttled, but vector may be taken down by the load"
+          pod: "{{ $labels.kubernetes_pod_name }}"
+          impact: "Vector functionality may be degraded due to load"
+          action: "Check dashboard to find the problematic pod (`Rate Limit Details` row), add it to the VECTOR_DROP_PATTERN kill-switch, and notify owners"
+          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
+          dashboard_fallback: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
