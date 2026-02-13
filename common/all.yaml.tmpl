@@ -57,7 +57,7 @@ groups:
         expr: 'count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0'
         labels:
           team: infra
-      - alert: NodeStuckRebooting
+      - alert: NodeStuckRebooting #remove this alert if NodeUnschedulable is works as expected
         expr: "sum(kured_reboot_required) > 0 and sum(kured_reboot_required) - sum(kured_reboot_required offset 30m) == 0 and ON() hour() > 6 < 18"
         labels:
           team: infra
@@ -69,12 +69,14 @@ groups:
         labels:
           team: infra
       - alert: NodeUnschedulable
-        expr: "count(kube_node_spec_unschedulable == 1) > 0"
-        for: 1h
+        expr: "kube_node_spec_unschedulable == 1"
+        for: 30m
         labels:
           team: infra
         annotations:
-          summary: "Kubernetes cluster has unschedulable node(s)"
+          summary: "Kubernetes node {{ $labels.node }} is unschedulable for the last 30m"
+          description: "Node might be stuck rebooting"
+          command: "`kubectl --context {{ $labels.cluster }} describe node {{ $labels.node }}`"
       - alert: NodeNoDiskSpace
         expr: 'kube_node_status_condition{condition="OutOfDisk", status="true"} != 0'
         for: 2m
