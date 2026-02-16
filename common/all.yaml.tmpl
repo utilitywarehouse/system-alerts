@@ -46,12 +46,14 @@ groups:
         annotations:
           summary: "Metrics from kube-state-metrics are absent"
       - alert: NodeNotReady
-        expr: 'count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0'
-        for: $NODE_ROLL_WINDOW
+        expr: 'kube_node_status_condition{condition="Ready", status!="true"} != 0'
+        for: 30m
         labels:
           team: infra
         annotations:
-          summary: "Kubernetes node is Not Ready"
+          summary: "Kubernetes node {{ $labels.node }} is Not Ready for the last 30m"
+          description: "Node might be stuck during rollout"
+          command: "`kubectl --context {{ $labels.cluster }} describe node {{ $labels.node }}`"
       - alert: NodeNotReadyAlertInhibitor
         keep_firing_for: 2m
         expr: 'count(kube_node_status_condition{condition="Ready", status!="true"} != 0) > 0'
@@ -75,7 +77,7 @@ groups:
           team: infra
         annotations:
           summary: "Kubernetes node {{ $labels.node }} is unschedulable for the last 30m"
-          description: "Node might be stuck rebooting"
+          description: "Node might be stuck during rollout"
           command: "`kubectl --context {{ $labels.cluster }} describe node {{ $labels.node }}`"
       - alert: NodeNoDiskSpace
         expr: 'kube_node_status_condition{condition="OutOfDisk", status="true"} != 0'
