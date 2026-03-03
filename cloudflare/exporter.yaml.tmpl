@@ -7,7 +7,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "({{$labels.account}})There is unhealthy load balancer."
+          summary: "There is unhealthy load balancer. ({{$labels.account}})"
           description: "The load balancer {{$labels.load_balancer_name}} in zone {{$labels.zone}} is unhealthy for last 10m."
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
           uw-system-dev: "https://dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/home/domains"
@@ -19,8 +19,8 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "({{$labels.account}}) There are unhealthy tunnels."
-          description: "The tunnel {{$labels.tunnel_name}} is not healthy (status:$value). 0 for unhealthy, 1 for healthy, 2 for degraded, 3 for inactive"
+          summary: "There are unhealthy tunnels. ({{$labels.account}})"
+          description: "The tunnel {{$labels.tunnel_name}} is not healthy (status:{{$value}}). 0 for unhealthy, 1 for healthy, 2 for degraded, 3 for inactive"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
-          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/tunnels"
-          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/tunnels"
+          uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/connectors"
+          uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/connectors"
