@@ -11,7 +11,7 @@ groups:
           team: infra
         annotations:
           summary: "{{ $labels.instance }} log forwarder is not exposing metrics for 30m"
-          action: "ssh into {{ $labels.instance }} and make sure `promtail.service` is running"
+          action: "ssh into {{ $labels.instance }} and make sure `vector.service` is running"
       - alert: VectorFailingToSendToLoki
         # Checking that buffers are full (close to the max 500 events). Note
         # that buffers won't get full unless logs are not getting through at
