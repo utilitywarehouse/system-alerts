@@ -19,8 +19,10 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "There are unhealthy tunnels. ({{$labels.account}})"
-          description: "The tunnel {{$labels.tunnel_name}} is not healthy (status:{{$value}}). 0 for unhealthy, 1 for healthy, 2 for degraded, 3 for inactive"
+          summary: "The {{$labels.tunnel_name}} tunnel is unhealthy"
+          description: |
+            The tunnel {{$labels.tunnel_name}} is not healthy (status:{{$value}}) in  ({{$labels.account}}) account.
+            0 for unhealthy, 1 for healthy, 2 for degraded, 3 for inactive
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/V1SL92dVn/cloudflare-tunnels-cloudflared?orgId=1&from=now-24h&to=now|link>"
           uw-system-dev: "https://one.dash.cloudflare.com/aff6b6f7ada5a80fb3b2480c6cdf1a15/networks/connectors"
           uw-system-prod: "https://one.dash.cloudflare.com/a97d78332abeedc77b118c0c736e4ed3/networks/connectors"
