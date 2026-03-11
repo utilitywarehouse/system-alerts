@@ -24,6 +24,17 @@ groups:
           summary: "Kubernetes CA Certificate {{$labels.kubernetes_cluster}} is expiring in < 7 days"
           impact: "{{$labels.kubernetes_cluster}} will have TLS errors if not renewed."
           action: "Renew certificate for {{$labels.kubernetes_cluster}}"
+      - alert: KubernetesCACertMetricMissing
+        expr: absent(ca_cert_expiry_timestamp{app="kube-ca-cert-server"})
+        for: 10m
+        labels:
+          team: infra
+          priority: P1
+        annotations:
+          summary: "Kubernetes CA Certificate monitoring metric is absent"
+          impact: "CA certificate expiry alert will not be fired"
+          description: "This metrics is produced by `kube-ca-cert-server` deployment in `sys-semaphore` namespace."
+          command: "`kubectl --context {{ $labels.cluster }} -n sys-semaphore get deployments kube-ca-cert-server`"
       - alert: KubernetesApiDown
         expr: 'up{service="kubernetes"} != 1'
         for: 1m
