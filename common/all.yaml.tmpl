@@ -16,12 +16,13 @@ groups:
           summary: "Kubernetes node is down for over $NODE_ROLL_WINDOW"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/VAE0wIcik/kubernetes-pod-resources?orgId=1&refresh=1m&var-instance={{ $labels.instance }}&var-namespace=All&var-app=All&var-app_kubernetes_io_name=All|link>"
       - alert: KubernetesCACertExpiringSoon
-        expr: 'ca_cert_expiry_timestamp{app="kube-ca-cert-server"} - time() < 86400 * 7'
+        expr: 'ca_cert_expiry_timestamp{app="kube-ca-cert-server"} - time() < 86400 * 30'
         labels:
           team: infra
           priority: P1
         annotations:
-          summary: "Kubernetes CA Certificate {{$labels.kubernetes_cluster}} is expiring in < 7 days"
+          summary: "Kubernetes CA Certificate {{$labels.kubernetes_cluster}} is expiring in {{ $value | humanizeDuration }}"
+          description: "The CA cert will expire on {{ with query \"ca_cert_expiry_timestamp{app='kube-ca-cert-server'}\" }}{{ . | first | value | humanizeTimestamp }}{{ end }}."
           impact: "{{$labels.kubernetes_cluster}} will have TLS errors if not renewed."
           action: "Renew certificate for {{$labels.kubernetes_cluster}}"
       - alert: KubernetesCACertMetricMissing
@@ -32,8 +33,8 @@ groups:
           priority: P1
         annotations:
           summary: "Kubernetes CA Certificate monitoring metric is absent"
-          impact: "CA certificate expiry alert will not be fired"
           description: "This metrics is produced by `kube-ca-cert-server` deployment in `sys-semaphore` namespace."
+          impact: "CA certificate expiry alert will not be fired"
           command: "`kubectl --context {{ $labels.cluster }} -n sys-semaphore get deployments kube-ca-cert-server`"
       - alert: KubernetesApiDown
         expr: 'up{service="kubernetes"} != 1'
