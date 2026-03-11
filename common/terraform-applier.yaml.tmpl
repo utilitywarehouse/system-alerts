@@ -25,7 +25,7 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "terraform-applier has not been able to fetch {{ $labels.repo }} repository in the last 10m"
+          summary: "terraform-applier has not been able to fetch {{ $labels.repo }} repository in the last 1h"
           impact: "terraform-applier will not be running modules from this repository"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/9kH3Tk0Zzd/terraform-applier-v2?orgId=1&refresh=5s|link>"
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"$ENVIRONMENT-$PROVIDER\",kubernetes_namespace=\"sys-terraform-applier\"}"}]|link>'

@@ -360,8 +360,8 @@ groups:
         labels:
           team: infra
         annotations:
-          description: "{{ $labels.instance }} certificate expires in less than 28 days"
-          summary: "SSL Certificate is due to expire in less than 28 days"
+          summary: "{{ $labels.instance }} certificate expires in {{ $value | humanizeDuration }}"
+          description: "SSL Certificate will expire on {{ with query \"probe_ssl_earliest_cert_expiry{job=~'^tls-cert-check.*$'}\" }}{{ . | first | value | humanizeTimestamp }}{{ end }}."
   - name: vault
     # Recommendations from https://s3-us-west-2.amazonaws.com/hashicorp-education/whitepapers/Vault/Vault-Consul-Monitoring-Guide.pdf
     rules:

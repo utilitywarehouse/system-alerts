@@ -21,6 +21,6 @@ groups:
         labels:
           team: infra
         annotations:
-          summary: "git-mirror {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} has not been able to fetch {{ $labels.repo }} repository in the last 10m"
+          summary: "git-mirror {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_pod_name}} has not been able to fetch {{ $labels.repo }} repository in the last 1h"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/degf9y0h4vwu8f/git-mirror?orgId=1&from=now-12h&to=now&timezone=browser&var-cluster=$__all&var-namespace={{$labels.kubernetes_namespace}}&var-pod={{$labels.kubernetes_pod_name}}|link>"
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\",container=\"git-mirror\"}"}]|link>'
