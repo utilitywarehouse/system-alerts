@@ -53,3 +53,12 @@ groups:
           action: "Notify owners to reduce verbosity and/or add the pod to the VECTOR_DROP_PATTERN kill-switch"
           dashboard: "Rate Limit Details` row at https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector?var-pod={{ $labels.kubernetes_pod_name }}"
           dashboard_fallback: "`Rate Limit Details` row at https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
+      - alert: LokiDroppingLogsRateLimited
+        expr: 'sum by (app_kubernetes_io_instance,reason) (rate(loki_discarded_samples_total{reason="rate_limited"}[5m])) > 0'
+        labels:
+          team: infra
+        annotations:
+          summary: "Loki's {{$labels.app_kubernetes_io_instance}} instance is rejecting logs due to hitting the global ingestion rate limit"
+          description: "Loki is rejecting logs due to our self-imposed global rate limit. Rejected logs could be desirable (if they are due to the organic growth of the cluster or because Loki is recovering from an outage) or they could be undesirable (our vector's rate limit is allowing too much noise)"
+          action: "Fix Vector configuration or raise Loki's limits (ingestion_rate_mb and ingestion_burst_size_mb)"
+          dashboard: "`Rate Limit Details` row at https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
