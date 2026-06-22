@@ -1,0 +1,126 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: tetragon-agent
+    rules:
+      - alert: TetragonKernelEventsMissed
+        expr: rate(tetragon_bpf_missed_events_total[5m]) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon kernel events are being dropped"
+          description: |
+            The Tetragon agent on node {{ $labels.instance }} is failing to send eBPF events from kernel space to user space.
+            This indicates eBPF buffer pressure or severe node resource starvation.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - alert: TetragonEventCacheFetchFailures
+        expr: rate(tetragon_event_cache_fetch_failures_total[5m]) > 5
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon event cache fetch failures spiking"
+          description: |
+            Tetragon is experiencing a high rate of context cache misses ({{ $value }} per second) on {{ $labels.instance }}.
+            A significant number of events will lack critical metadata (pod name, binary paths, etc.).
+            This usually indicates heavy CPU throttling or a massive spike in short-lived processes.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - alert: TetragonBpfMapWriteErrors
+        expr: rate(tetragon_map_errors_update_total[5m]) > 0 or rate(tetragon_map_errors_delete_total[5m]) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon failed to update or delete eBPF map entries"
+          description: |
+            Map operations are failing on {{ $labels.instance }}. This breaks the in-kernel tracking state and might lead to stale policies or broken enforcements.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - alert: TetragonMapCapacityHigh
+        expr: |
+          (
+            sum by (instance, kubernetes_pod_name, map) (tetragon_map_entries)
+            /
+            sum by (instance, kubernetes_pod_name, map) (tetragon_map_capacity)
+          ) > 0.08
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon eBPF map capacity is over 80%"
+          description: |
+            The Tetragon eBPF map '{{ $labels.map }}' on instance {{ $labels.instance }} (Pod: {{ $labels.kubernetes_pod_name }}) is over 80% full.
+            If this fills to 100%, Tetragon will fail to track new processes and lose kernel state.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - alert: TetragonTracingPolicyError
+        expr: |
+          avg by (instance, state) (tetragon_tracingpolicy_loaded{state!~"disabled|enabled"}) > 0
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon failed to load a tracing policy"
+          description: |
+            Tetragon on instance {{ $labels.instance }} has one or more tracing policies in an 'error' state.
+            This means a configured security policy (e.g., file monitoring or network enforcement) was rejected by the eBPF verifier and is not active.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - alert: TetragonNamespaceEventSpike
+        expr: |
+          (
+            sum by (kubernetes_cluster, namespace, type) (rate(tetragon_events_total[5m]))
+            /
+            sum by (kubernetes_cluster, namespace, type) (max_over_time(rate(tetragon_events_total[5m])[1h:5m] offset 1d))
+          ) > 10
+          and
+          sum by (kubernetes_cluster, namespace, type) (max_over_time(rate(tetragon_events_total[5m])[1h:5m] offset 1d)) > 0
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "Tetragon event volume spiked 10x in namespace: {{ $labels.namespace }}"
+          description: |
+            The total volume of {{ $labels.type }} events in namespace '{{ $labels.namespace }}' (cluster: {{ $labels.kubernetes_cluster }}) is over 10 times higher than its peak rate yesterday.
+            An application inside this namespace may be compromised, experiencing a log loop, or executing an unusual amount of processes/network connections.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
+          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
+          events: >-
+            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
+            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
+            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
