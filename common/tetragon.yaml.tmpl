@@ -64,7 +64,7 @@ groups:
             sum by (instance, kubernetes_pod_name, map) (tetragon_map_entries)
             /
             sum by (instance, kubernetes_pod_name, map) (tetragon_map_capacity)
-          ) > 0.08
+          ) > 0.8
         for: 5m
         labels:
           team: infra
