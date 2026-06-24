@@ -99,28 +99,3 @@ groups:
             https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
             {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
             {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
-
-      - alert: TetragonNamespaceEventSpike
-        expr: |
-          (
-            sum by (kubernetes_cluster, namespace, type) (rate(tetragon_events_total[5m]))
-            /
-            sum by (kubernetes_cluster, namespace, type) (max_over_time(rate(tetragon_events_total[5m])[1h:5m] offset 1d))
-          ) > 10
-          and
-          sum by (kubernetes_cluster, namespace, type) (max_over_time(rate(tetragon_events_total[5m])[1h:5m] offset 1d)) > 0
-        for: 10m
-        labels:
-          team: infra
-        annotations:
-          summary: "Tetragon event volume spiked 10x in namespace: {{ $labels.namespace }}"
-          description: |
-            The total volume of {{ $labels.type }} events in namespace '{{ $labels.namespace }}' (cluster: {{ $labels.kubernetes_cluster }}) is over 10 times higher than its peak rate yesterday.
-            An application inside this namespace may be compromised, experiencing a log loop, or executing an unusual amount of processes/network connections.
-          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asqwlg8/tetragon?orgId=1|link>"
-          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
-          audit_dashboard: "<https://audits.$ENVIRONMENT.aws.uw.systems/d/asjrxrw/tetragon-events?orgId=1&var-cluster={{$labels.kubernetes_cluster}}|link>"
-          events: >-
-            https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
-            {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
-            {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
