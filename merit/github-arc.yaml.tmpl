@@ -1,0 +1,41 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: gha-runner-set
+    rules:
+      - alert: GhaJobStartupLatencySustained
+        expr: 'histogram_quantile(0.95, sum by (le, kubernetes_cluster, namespace) (rate(gha_job_startup_duration_seconds_bucket{namespace="sys-actions"}[10m]))) > 120'
+        for: 1h
+        labels:
+          team: infra
+        annotations:
+          summary: "Job startup latency (p95) in cluster {{ $labels.kubernetes_cluster }} / namespace {{ $labels.namespace }} has been above 120s for 1 hour ({{ $value }})"
+          impact: "GitHub Actions jobs dispatched to this runner scale set are experiencing prolonged queue delays. New workflow jobs will wait for runners to become available."
+          action: |
+            ARC scale-up is failing to keep up with job arrivals — extended backlog; users already feeling impact. Inspect controller state:
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get autoscalingrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get ephemeralrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get pods`
+            compare the runner count the controller reports via autoscalingrunnersets and ephemeralrunnersets against the actual
+            number of pods returned by `get pods` — the controller has been observed to over-report.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asv7ggp/arc-autoscaling-runner-set-monitoring?orgId=1&from=now-6h|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.namespace }}\"}"}]|link>'
+
+      - alert: GhaRunnerIdleExhausted
+        expr: '(max by (kubernetes_cluster, namespace) (gha_idle_runners{namespace="sys-actions"}) == 0) and (max by (kubernetes_cluster, namespace) (gha_busy_runners{namespace="sys-actions"}) > 0)'
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "No idle runners available in cluster {{ $labels.kubernetes_cluster }} / namespace {{ $labels.namespace }} for 15 minutes while work is in progress"
+          impact: "The next workflow job dispatched to this scale set will have no runner to run on and will be queued until ARC provisions a new pod or a busy runner frees up."
+          action: |
+            No idle runners available — leading indicator; jobs about to start queueing. Inspect controller state:
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get autoscalingrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get ephemeralrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get pods`
+            compare the runner count the controller reports via autoscalingrunnersets and ephemeralrunnersets against the actual
+            number of pods returned by `get pods` — the controller has been observed to over-report.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asv7ggp/arc-autoscaling-runner-set-monitoring?orgId=1&from=now-6h|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.namespace }}\"}"}]|link>'
