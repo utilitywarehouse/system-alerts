@@ -1,0 +1,17 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: pubsub-mirror-maker
+    rules:
+      - alert: MirrorMakerConnectorFailedTasks
+        expr: 'kafka_connect_worker_connector_failed_task_count{kubernetes_namespace="pubsub"} > 0'
+        labels:
+          team: infra
+        annotations:
+          summary: "MirrorMaker2 connector {{ $labels.connector }} on {{ $labels.kubernetes_pod_name }} has {{ $value }} failed task(s)"
+          impact: "The affected connector has stopped mirroring records for at least one of its tasks, so replication to the target cluster is falling behind or stalled."
+          action: |
+            Check the pod logs for the underlying error.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs {{ $labels.kubernetes_pod_name }}`
+            Restart the pod once the root cause is fixed.
