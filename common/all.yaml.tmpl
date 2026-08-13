@@ -82,6 +82,14 @@ groups:
         expr: "sum(kured_reboot_required) > 0"
         labels:
           team: infra
+      - alert: KuredMissingNodes
+        expr: 'kube_daemonset_status_desired_number_scheduled{namespace="sys-flatcar", daemonset="kured"} < on(cluster) count(kube_node_info) by (cluster)'
+        for: 1d
+        labels:
+          team: infra
+        annotations:
+          summary: "Kured has fewer scheduled pods than nodes in {{ $labels.cluster }}"
+          description: "Kured has less scheduled pods than nodes we have. We may have broken or leftover node taints."
       - alert: NodeUnschedulable
         expr: "kube_node_spec_unschedulable == 1"
         for: 30m
