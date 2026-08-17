@@ -5,7 +5,7 @@ groups:
   - name: terraform-applier-module
     rules:
       - alert: TerraformApplierModuleErrors
-        expr: '(max(terraform_applier_module_last_run_success{run_type!="PullRequestPlan"}) by (kubernetes_cluster,kubernetes_namespace,module,namespace) == 0) * on (namespace) group_left(team) uw_namespace_oncall_team'
+        expr: '(min(terraform_applier_module_last_run_success{run_type=~"ScheduledRun|PollingRun"}) by (kubernetes_cluster,kubernetes_namespace,module,namespace) == 0) * on (namespace) group_left(team) uw_namespace_oncall_team'
         for: 10m
         labels:
           alerttype: stock
