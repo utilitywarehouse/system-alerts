@@ -5,7 +5,14 @@ groups:
   - name: terraform-applier-module
     rules:
       - alert: TerraformApplierModuleErrors
-        expr: '(max(terraform_applier_module_last_run_success{run_type!="PullRequestPlan"}) by (kubernetes_cluster,kubernetes_namespace,module,namespace) == 0) * on (namespace) group_left(team) uw_namespace_oncall_team'
+        expr: |
+          (
+            (terraform_applier_module_last_run_success{run_type!="PullRequestPlan"}
+                and on (kubernetes_cluster, kubernetes_namespace, module, namespace, run_type)
+              topk by (kubernetes_cluster, kubernetes_namespace, module, namespace) (
+                1, terraform_applier_module_last_run_timestamp{run_type!="PullRequestPlan"})
+            ) == 0
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
         for: 10m
         labels:
           alerttype: stock
