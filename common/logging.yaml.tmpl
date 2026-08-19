@@ -55,6 +55,7 @@ groups:
           dashboard_fallback: "`Rate Limit Details` row at https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/bdnuhz796molca/vector"
       - alert: LokiDroppingLogsRateLimited
         expr: 'sum by (app_kubernetes_io_instance,reason) (rate(loki_discarded_samples_total{reason="rate_limited"}[5m])) > 0'
+        for: 15m
         labels:
           team: infra
         annotations:
