@@ -85,11 +85,16 @@ groups:
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&refresh=30s&viewPanel=81"
           priority: P2
       - alert: MSKStalledConsumerGroup
-        # per-partition lag over 100k with 0 consumer group members for the last 3 days, i.e. an
-        # orphaned/abandoned group rather than a slow one. Excludes MirrorMaker2-managed groups
-        # (tracked via kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms) and
-        # their same-name-with-source-prefix duplicates, which are not independent consumers.
-        expr: "sum by (kubernetes_cluster, kubernetes_namespace, consumergroup, topic) (kafka_consumergroup_lag{app_kubernetes_io_component=\"msk-metrics\"} > 100000 and on(kubernetes_cluster, kubernetes_namespace, consumergroup) (max_over_time(kafka_consumergroup_members{app_kubernetes_io_component=\"msk-metrics\"}[3d]) == 0)) unless on(consumergroup) (label_replace(group by (group) (kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms), \"consumergroup\", \"$1\", \"group\", \"(.*)\") or label_join(group by (source, group) (kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms), \"consumergroup\", \".\", \"source\", \"group\"))"
+        # per-partition lag over 100k with 0 consumer group members (aggregated across all
+        # exporter replicas, so a stale/rolled-over replica can't fake a zero) for the last
+        # 3 days, i.e. an orphaned/abandoned group rather than a slow one. Excludes
+        # MirrorMaker2-managed groups (tracked via
+        # kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms) and their
+        # same-name-with-source-prefix duplicates, plus any group on a topic MM2 is still
+        # actively mirroring (kafka_connect_mirror_mirrorsourceconnector_record_count), since
+        # the checkpoint connector metric alone can lag or drop a group while its topic is
+        # still being migrated.
+        expr: "sum by (kubernetes_cluster, kubernetes_namespace, consumergroup, topic) (kafka_consumergroup_lag{app_kubernetes_io_component=\"msk-metrics\"} > 100000 and on(kubernetes_cluster, kubernetes_namespace, consumergroup) (max by (kubernetes_cluster, kubernetes_namespace, consumergroup) (max_over_time(kafka_consumergroup_members{app_kubernetes_io_component=\"msk-metrics\"}[3d])) == 0)) unless on(consumergroup) (label_replace(group by (group) (kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms), \"consumergroup\", \"$1\", \"group\", \"(.*)\") or label_join(group by (source, group) (kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms), \"consumergroup\", \".\", \"source\", \"group\")) unless on(topic) (sum by (topic) (rate(kafka_connect_mirror_mirrorsourceconnector_record_count[1h])) > 0)"
         for: 6h
         labels:
           team: infra
