@@ -56,3 +56,13 @@ groups:
         annotations:
           description: "Matchbox http endpoint has been down on {{ $labels.instance }} for more than 15 minutes."
           summary: "Matchbox http endpoint is down"
+  - name: node-storage
+    rules:
+      - alert: MultipathdFailed
+        expr: 'node_systemd_unit_state{cloud_provider="merit", name="multipathd.service", state="failed"} == 1'
+        for: 5m
+        labels:
+          team: infra
+        annotations:
+          description: "multipathd has been in failed state on {{ $labels.instance }} for more than 5 minutes. A failed restart attempt leaves the unit permanently failed, blocking Trident CSI volume staging on the node."
+          summary: "multipathd not running on {{ $labels.instance }}"
