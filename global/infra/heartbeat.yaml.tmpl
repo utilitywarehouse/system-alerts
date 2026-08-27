@@ -1,0 +1,12 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: heartbeat
+    rules:
+      - alert: Heartbeat
+        expr: vector(1)
+        labels:
+          team: infra
+        annotations:
+          summary: Always-firing alert, acting as heartbeat for the alerting system
