@@ -4,6 +4,7 @@ Contains alerts templates under a single base
 
 - common: Contains templates for alerts we deploy everywhere
 - cis-aws: Contains templates for alerts based on CIS Benchmark for AWS
+- global: root folder for alerts that depend on metrics spread across clusters. These are meant to be installed on the thanos-rule-global instance, which queries thanos-query-global.
 - kube-applier: Contains templates for kube-applier alerts
 
 # Patch thanos-rule deployment
