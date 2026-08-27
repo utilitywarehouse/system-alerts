@@ -37,7 +37,6 @@ groups:
           unless on(topic) (
             sum by (topic) (rate(kafka_connect_mirror_mirrorsourceconnector_record_count[1h])) > 0
           )
-        for: 6h
         labels:
           team: infra
           group: kafka
@@ -45,4 +44,15 @@ groups:
           summary: "Consumer group {{ $labels.consumergroup }} on topic {{ $labels.topic }} in cluster {{ $labels.kubernetes_cluster }} has {{ $value }} lag with no members for at least 3 days"
           runbook: "Check with the team owning the consumer group whether it's still needed, and remove it if not. Non source-prefixed groups created during an MSK migration can be removed once their source-prefixed counterpart is confirmed to be the one in active use."
           dashboard: "https://kafka-ui.$ENVIRONMENT.uw.systems/ui/clusters/shared-msk/consumer-groups/{{ $labels.consumergroup }}"
+          priority: P2
+
+      - alert: MSKTestAlertAlwaysFiring
+        # temporary alert to test the alerting flow end to end, remove once confirmed
+        expr: vector(1) == 1
+        labels:
+          team: infra
+          group: kafka
+        annotations:
+          summary: "Test alert, always firing, used to verify the alerting pipeline"
+          runbook: "This is a test alert with no action required, safe to ignore or silence."
           priority: P2
