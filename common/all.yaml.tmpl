@@ -36,6 +36,21 @@ groups:
           description: "This metrics is produced by `kube-ca-cert-server` deployment in `sys-semaphore` namespace."
           impact: "CA certificate expiry alert will not be fired"
           command: "`kubectl --context {{ $labels.cluster }} -n sys-semaphore get deployments kube-ca-cert-server`"
+      # cert-refresh's ExecCondition renews at 90 days to expiry (see
+      # tf_kube_ignition). 88 days gives a 2-day grace window past that for
+      # the daily timer to run, so this fires promptly if renewal is
+      # actually broken rather than waiting until the cert is nearly expired.
+      - alert: KubernetesNodeCertExpiringSoon
+        expr: 'cfssl_cert_expiry_timestamp_seconds - time() < 86400 * 88'
+        for: 10m
+        labels:
+          team: infra
+          priority: P1
+        annotations:
+          summary: "{{$labels.cert}} certificate on {{$labels.kubernetes_cluster}}/{{$labels.node}} is expiring in {{ $value | humanizeDuration }}"
+          description: "cert-refresh renews at 90 days to expiry; this certificate hasn't rotated, so the automation on this node has likely failed."
+          impact: "{{$labels.node}} will fail TLS/mTLS once this certificate expires."
+          action: "Check cert-refresh.service on {{$labels.node}}: `journalctl -u cert-refresh.service`"
       - alert: KubernetesApiDown
         expr: 'up{service="kubernetes"} != 1'
         for: 1m
