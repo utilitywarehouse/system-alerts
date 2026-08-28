@@ -11,9 +11,11 @@ groups:
         # MirrorMaker2-managed groups (tracked via
         # kafka_connect_mirror_mirrorcheckpointconnector_checkpoint_latency_ms) and their
         # same-name-with-source-prefix duplicates, plus any group on a topic MM2 is still
-        # actively mirroring (kafka_connect_mirror_mirrorsourceconnector_record_count), since
-        # the checkpoint connector metric alone can lag or drop a group while its topic is
-        # still being migrated.
+        # actively mirroring (existence of kafka_connect_mirror_mirrorsourceconnector_record_count
+        # for the topic, not its rate, since produce traffic on a topic can go quiet for
+        # hours without the mirroring having actually stopped), since the checkpoint
+        # connector metric alone can lag or drop a group while its topic is still being
+        # migrated.
         expr: |
           sum by (kubernetes_cluster, kubernetes_namespace, consumergroup, topic) (
             kafka_consumergroup_lag{app_kubernetes_io_component="msk-metrics"} > 100000
@@ -35,7 +37,7 @@ groups:
             )
           )
           unless on(topic) (
-            sum by (topic) (rate(kafka_connect_mirror_mirrorsourceconnector_record_count[1h])) > 0
+            group by (topic) (kafka_connect_mirror_mirrorsourceconnector_record_count)
           )
         for: 6h
         labels:
