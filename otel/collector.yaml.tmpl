@@ -12,22 +12,15 @@ groups:
           team: infra
         annotations:
           summary: "{{ $labels.pod }} collector is refusing trace spans from clients"
-      - alert: ProcessorDroppedSpans
-        expr: rate(otelcol_processor_dropped_spans{kubernetes_namespace="otel"}[5m]) > 0
-        for: 15m
-        labels:
-          team: infra
-        annotations:
-          summary: "{{ $labels.pod }} collector is dropping trace spans"
       - alert: ExporterFailedToSendSpans
-        expr: rate(otelcol_exporter_send_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
+        expr: rate(otelcol_exporter_send_failed_spans_total{kubernetes_namespace="otel"}[5m]) > 0
         for: 15m
         labels:
           team: infra
         annotations:
           summary: "{{ $labels.pod }} collector failing to export trace spans"
       - alert: ExporterFailedToEnqueueSpans
-        expr: rate(otelcol_exporter_enqueue_failed_spans{kubernetes_namespace="otel"}[5m]) > 0
+        expr: rate(otelcol_exporter_enqueue_failed_spans_total{kubernetes_namespace="otel"}[5m]) > 0
         for: 15m
         labels:
           team: infra
