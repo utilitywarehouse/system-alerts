@@ -101,11 +101,10 @@ groups:
           summary: "Thanos bucket operations are failing for 10m in {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}}"
       - alert: ThanosNoUpload
         expr: |
-          (sum by (kubernetes_name)(up{kubernetes_namespace=~"sys-mon|sys-prom"}) - 1)
-          + on (kubernetes_name)
-          (sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_name) (increase(thanos_shipper_uploads_total{}[3h])) == 0)
-        for: 3h
+          (sum by (kubernetes_cluster,kubernetes_name) (up{kubernetes_namespace=~"sys-mon|sys-prom"}) > 0)
+          * on (kubernetes_cluster,kubernetes_name) group_left (kubernetes_namespace)
+          (sum by (kubernetes_cluster,kubernetes_namespace,kubernetes_name) (thanos_shipper_uploads_total - thanos_shipper_uploads_total offset 3h) == bool 0)
         labels:
           team: infra
         annotations:
-          summary: "Thanos has not uploaded latest data to object storage in {{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}}"
+          summary: "Thanos has not uploaded latest data to object storage in {{$labels.kubernetes_cluster}}/{{$labels.kubernetes_namespace}}/{{$labels.kubernetes_name}}"
