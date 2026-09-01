@@ -117,12 +117,3 @@ groups:
         annotations:
           summary: There are too many outstanding compaction blocks, increase compactor's CPU or add more compactors
           runbook: https://github.com/grafana/tempo/blob/v2.10.8/operations/tempo-mixin/runbook.md#tempocompactorstoomanyoutstandingblocks
-      - alert: TempoCompactorsTooManyOutstandingBlocks
-        expr: |
-          sum(tempodb_compaction_outstanding_blocks{app="tempo-compactor", kubernetes_namespace="otel"}) / ignoring(tenant) group_left count(tempo_build_info{app="tempo-compactor", kubernetes_namespace="otel"}) > 250
-        for: 24h
-        labels:
-          team: infra
-        annotations:
-          summary: There are too many outstanding compaction blocks, increase compactor's CPU or add more compactors
-          runbook: https://github.com/grafana/tempo/blob/v2.10.8/operations/tempo-mixin/runbook.md#tempocompactorstoomanyoutstandingblocks
