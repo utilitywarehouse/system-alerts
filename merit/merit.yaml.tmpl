@@ -56,6 +56,32 @@ groups:
         annotations:
           description: "Matchbox http endpoint has been down on {{ $labels.instance }} for more than 15 minutes."
           summary: "Matchbox http endpoint is down"
+  - name: pve
+    rules:
+      - alert: PveNodeDown
+        expr: 'up{job="node-exporter-static", instance=~"pve.*"} != 1 or absent(up{job="node-exporter-static", instance=~"pve.*"})'
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          description: "{{ $labels.instance }} reports down more than 15 minutes."
+          summary: "Proxmox node exporter job down"
+      - alert: PveNodeHighMemory
+        expr: '(1 - (sum by (instance) (node_memory_MemAvailable_bytes{job="node-exporter-static", instance=~"pve.*"}) / sum by (instance) (node_memory_MemTotal_bytes{job="node-exporter-static", instance=~"pve.*"}))) * 100 > 90'
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          description: "{{ $labels.instance }} has been using more than 90% memory for over 10 minutes."
+          summary: "Proxmox host memory usage is high"
+      - alert: PveNodeHighDiskUsage
+        expr: '(1 - (node_filesystem_avail_bytes{job="node-exporter-static", instance=~"pve.*", fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{job="node-exporter-static", instance=~"pve.*", fstype!~"tmpfs|overlay"})) * 100 > 85'
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          description: "{{ $labels.instance }} filesystem {{ $labels.mountpoint }} has been more than 85% full for over 15 minutes."
+          summary: "Proxmox host disk usage is high"
   - name: node-storage
     rules:
       - alert: MultipathdFailed
