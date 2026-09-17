@@ -41,7 +41,7 @@ groups:
       # the daily timer to run, so this fires promptly if renewal is
       # actually broken rather than waiting until the cert is nearly expired.
       - alert: KubernetesNodeCertExpiringSoon
-        expr: 'cfssl_cert_expiry_timestamp_seconds - time() < 86400 * 88'
+        expr: 'cfssl_cert_expiry_timestamp_seconds - time() < 86400 * 350'
         labels:
           team: infra
           priority: P1
