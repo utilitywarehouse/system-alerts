@@ -99,3 +99,26 @@ groups:
             https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-12h","now","Loki",
             {"refId": "A","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_kprobe\":`  | json  | json arg1=\"process_kprobe.args[0]\" |  line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_policy_name}}/{{.process_kprobe_function_name}}  cmd:{{.process_kprobe_process_binary}}  {{.process_kprobe_process_arguments}} func_arg:[{{.arg1}}] Parent:[{{.process_kprobe_parent_binary}}]\""},
             {"refId": "B","expr": "{log_source=\"kube_tetragon_events\",kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\"} |=`\"process_exec\":` | json  | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} cmd:{{.process_exec_process_binary}} {{.process_exec_process_arguments}} Parent:[{{.process_exec_parent_binary}}]\""}]
+
+      - name: tetragon-secret-scan
+        rules:
+          - alert: TetragonSecretScanFoundSecrets
+            expr: tetragon_secret_scan_findings > 0
+            labels:
+              team: infra
+            annotations:
+              summary: "Tetragon audit log scan found {{ $value }} secret(s) in process arguments"
+              action: |
+                The scan prints one metadata line per finding - rule, timestamp, cluster, node,
+                namespace, pod and binary; use it to locate the event.
+                `kubectl -n sys-audit logs -l app.kubernetes.io/name=tetragon-secret-scan -c report --tail=200`
+                `kubectl -n sys-audit get pods -l app.kubernetes.io/name=tetragon-secret-scan`
+                Find the event in the audit logs at that timestamp for that pod/binary and verify whether
+                the value is actually a secret. If it is, add a redaction filter for it to the
+                tetragon-config so future occurrences are redacted:
+                https://github.com/utilitywarehouse/system-manifests/blob/master/tetragon/namespaced/tetragon-config-patch.yaml
+                The alert clears on the next scan that finds no secrets.
+              events: >-
+                https://audits.$ENVIRONMENT.aws.uw.systems/explore?left=["now-24h","now","Loki",
+                {"refId":"A","expr":"{log_source=\"kube_tetragon_events\"} |=`\"process_kprobe\":` | json | line_format \"{{.cluster_name}}/{{.process_kprobe_process_pod_namespace}} {{.process_kprobe_process_policy_name}}/{{.process_kprobe_process_function_name}} bin:{{.process_kprobe_process_binary}} {{.process_kprobe_process_arguments}}\""},
+                {"refId":"B","expr":"{log_source=\"kube_tetragon_events\"} |=`\"process_exec\":` | json | line_format \"{{.cluster_name}}/{{.process_exec_process_pod_namespace}} bin:{{.process_exec_process_binary}} {{.process_exec_process_arguments}}\""}]
