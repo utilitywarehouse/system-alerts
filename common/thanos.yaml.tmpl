@@ -28,7 +28,7 @@ groups:
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=~\"{{$labels.kubernetes_pod_name}}\"}"}]|link>'
       - alert: ThanosRuleSenderIsFailingAlerts
         expr: "sum by (kubernetes_cluster,kubernetes_namespace, kubernetes_pod_name) (rate(thanos_alert_sender_alerts_dropped_total{}[5m])) > 0"
-        for: 5m
+        for: 15m
         labels:
           team: infra
         annotations:
