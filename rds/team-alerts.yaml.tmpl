@@ -88,6 +88,9 @@ groups:
       - alert: RDSSwapUtilization
         expr: (max by (aws_account_id, aws_region, dbidentifier) (delta(rds_swap_usage_bytes{}[1h])) / 1024 / 1024 >= 20) + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 2m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: "{{ $labels.dbidentifier }} SWAP utilization is high"
           impact: "Performance could be degraded"
@@ -123,6 +126,9 @@ groups:
       - alert: RDSIOPSUtilization
         expr: (max by (aws_account_id, aws_region, dbidentifier) ((rds_read_iops_average{} + rds_write_iops_average{}) * 100 / rds_max_disk_iops_average{}) > 80)  + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: '{{ $labels.dbidentifier }} uses {{ printf "%.0f" $value }}% of its disk IOPS'
           impact: "Performance could be degraded"
@@ -138,6 +144,9 @@ groups:
       - alert: RDSPostgreSQLMaximumUsedTransaction
         expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_maximum_used_transaction_ids_average) > (2^32) * 0.5) + on (dbidentifier) group_left (team) uw_rds_owner_team # 50% of the max transactions limit
         for: 5m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: "{{ $labels.dbidentifier }} is using {{ $value }} transaction IDs on 4 billions hard limit"
           impact: "PostgreSQL will shut down and refuse to start any new transactions once there are fewer than 3 million transactions left until wraparound"
@@ -153,6 +162,9 @@ groups:
         # Autoscaling kicks in at least at < 10%
         expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_free_storage_bytes{} * 100 / rds_allocated_storage_bytes{}) < 10) + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 20m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: '{{ $labels.dbidentifier }} has {{ printf "%.2g" $value }}% free disk space'
           impact: "The PostgreSQL instance will stop to prevent data corruption if no more disk space is available."
@@ -171,6 +183,9 @@ groups:
           unless on(dbidentifier) rds_max_allocated_storage_bytes{}
           + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 10m
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: "{{ $labels.dbidentifier }} will run out of disk space in 4 hours"
           impact: "The PostgreSQL instance will stop to prevent data corruption if no more disk space is available."
@@ -183,6 +198,9 @@ groups:
 
       - alert: RDSStorageAutoscaling
         expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_allocated_storage_bytes{} * 100 / rds_max_allocated_storage_bytes{}) > 80) + on (dbidentifier) group_left (team) uw_rds_owner_team
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: "{{ $labels.dbidentifier }} allocated storage reached 80% of the maximum storage threshold for autoscaling"
           impact: "RDS instance may not be able to autoscale storage"
@@ -195,6 +213,9 @@ groups:
       - alert: RDSUnappliedParameters
         expr: (max by (aws_account_id, aws_region, dbidentifier) (rds_instance_info{pending_modified_values="true"}) > 0) + on (dbidentifier) group_left (team) uw_rds_owner_team
         for: 1h
+        labels:
+          alerttype: stock
+          alertgroup: RDS
         annotations:
           summary: "{{ $labels.dbidentifier }} has unapplied parameters"
           impact: "RDS instance is running with outdated configuration"
