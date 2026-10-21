@@ -13,10 +13,10 @@ groups:
           description: "{{ $labels.instance }} reports down more than 10 minutes."
           summary: "Wiresteward node exporter job down"
       - alert: WirestewardSystemdServiceDown
-        expr: 'node_systemd_unit_state{name=~"s3fs.service|wiresteward.service", state="failed", instance=~"^\\d\\.private-wiresteward.+$"} == 1'
+        expr: 'node_systemd_unit_state{name=~"s3fs.service|wiresteward.service", state="active", instance=~"^\\d\\.private-wiresteward.+$"} == 0'
         for: 10m
         labels:
           team: infra
         annotations:
-          description: "{{ $labels.instance }} reports systemd services down more than 10 minutes."
-          summary: "Wiresteward node has failed important systemd services"
+          description: "{{ $labels.instance }} has not had {{ $labels.name }} active for more than 10 minutes."
+          summary: "Wiresteward node has important systemd services not running"
