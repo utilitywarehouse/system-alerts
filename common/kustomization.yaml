@@ -18,6 +18,7 @@ configMapGenerator:
       - stock/cockroachdb.yaml.tmpl
       - stock/container.yaml.tmpl
       - stock/elasticsearch.yaml.tmpl
+      - stock/eqdb_loader.yaml.tmpl
       - stock/missing_replicas.yaml.tmpl
       - stock/namespace_sync.yaml.tmpl
       - stock/rds.yaml.tmpl
