@@ -17,4 +17,4 @@ groups:
           summary: "eqdb-loader load in {{ $labels.namespace }} was stopped before completing"
           impact: "Its data is missing, and it will not resume until the next run inside the loading window."
           action: "Check whether the load started too late or the table set no longer fits in the window; adjust the schedule or split the table set. See the `ALERT` line in the loader logs."
-          logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-24h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\"} |~ \"eqdb_loader|window\""}]|link>'
+          logs: '<https://grafana.${ENVIRONMENT}.aws.uw.systems/explore?left=["now-24h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_namespace=\"{{ $labels.namespace }}\"} |= \"ALERT: operational window ended\""}]|link>'
