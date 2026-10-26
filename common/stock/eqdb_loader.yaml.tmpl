@@ -9,7 +9,11 @@ groups:
       # is stopped and not resumed, so its data is missing until the next in-window
       # trigger.
       - alert: EqdbLoaderWindowExceeded
-        expr: "(increase(eqdb_loader_window_exceeded_total[1h]) > 0) * on (namespace) group_left(team) uw_namespace_oncall_team"
+        expr: |
+          label_replace(
+            (increase(eqdb_loader_window_exceeded_total[1h]) > 0)
+            , "namespace", "$1", "kubernetes_namespace", "(.*)"
+          ) * on (namespace) group_left(team) uw_namespace_oncall_team
         labels:
           alerttype: stock
           alertgroup: eqdb_loader
