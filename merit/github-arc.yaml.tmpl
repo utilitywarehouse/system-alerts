@@ -39,3 +39,22 @@ groups:
             number of pods returned by `get pods` — the controller has been observed to over-report.
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asv7ggp/arc-autoscaling-runner-set-monitoring?orgId=1&from=now-6h|link>"
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.namespace }}\"}"}]|link>'
+
+      - alert: GhaRunnerSetListenerDown
+        expr: 'sum by (kubernetes_cluster, namespace) (gha_controller_running_listeners{namespace="sys-actions"}) == 0'
+        for: 10m
+        labels:
+          team: infra
+        annotations:
+          summary: "No ARC listener running in cluster {{ $labels.kubernetes_cluster }} / namespace {{ $labels.namespace }} for 10 minutes"
+          impact: "GitHub cannot dispatch workflow jobs to this runner scale set. Jobs queue indefinitely and no runners are created until the listener is restored."
+          action: |
+            The listener has been removed — typically because the AutoscalingRunnerSet was marked outdated and cleanup stalled.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get autoscalingrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get ephemeralrunnersets.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} get autoscalinglisteners.actions.github.com`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} logs deploy/arc-gha-rs-controller --since=30m | grep -Ei 'outdated|delet|error|fail'`
+            If the AutoscalingRunnerSet is stuck Outdated with no listener, restart the controller to re-run cleanup:
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.namespace }} rollout restart deploy/arc-gha-rs-controller`
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/asv7ggp/arc-autoscaling-runner-set-monitoring?orgId=1&from=now-6h|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.namespace }}\"}"}]|link>'
