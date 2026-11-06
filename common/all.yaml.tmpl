@@ -170,6 +170,7 @@ groups:
           impact: "Pods may not find room to get scheduled."
           action: "Review workloads' resource reservations and adjust them."
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Mig_eDNVz/kubernetes-cluster-utilization AND https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/SAY0wIcik/kubernetes-resource-provisioning"
+
   - name: kyverno
     rules:
       - alert: KyvernoBackgroundCheckRuleFailure
@@ -204,6 +205,35 @@ groups:
             `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get clusterpolicies {{ $labels.policy_name }}`
             3) make sure background scan is not disabled via flag on `reports controller`
             `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system get deployments kyverno-reports-controller -o yaml`
+      - alert: KyvernoAdmissionPolicyGenerationFailed
+        # The drop counter series is created on the first drop, which `increase()`  can't see, hence the `unless offset` term.
+        expr: |
+          (
+            sum by (kubernetes_cluster, kubernetes_pod_name) (increase(kyverno_controller_drop_total{controller_name="admissionpolicy-generator"}[6h])) > 0) or
+            (
+              sum by (kubernetes_cluster, kubernetes_pod_name) (kyverno_controller_drop_total{controller_name="admissionpolicy-generator"}) unless
+              sum by (kubernetes_cluster, kubernetes_pod_name) (kyverno_controller_drop_total{controller_name="admissionpolicy-generator"} offset 6h
+            )
+          )
+        labels:
+          team: infra
+        annotations:
+          summary: "Kyverno failed to generate a ValidatingAdmissionPolicy or MutatingAdmissionPolicy in {{ $labels.kubernetes_cluster }}"
+          description: |
+            Kyverno's admissionpolicy-generator on {{ $labels.kubernetes_pod_name }} gave up on a policy
+            after exhausting its retries. Kyverno only records that a policy was dropped, not whether it
+            is still broken, so this alert fires for 6h after each drop and then clears on its own, even
+            if the policy has not been fixed. The policy's `status.generated` stays `true` from the last
+            successful generation, so do not rely on it.
+          impact: "The generated admission policy is missing or stale, so the Kyverno policy it comes from may not be enforced."
+          action: |
+            Find the failing policy and the API server error in the admission controller logs:
+            `kubectl --context={{ $labels.kubernetes_cluster }} -n kube-system logs {{ $labels.kubernetes_pod_name }} | grep admissionpolicy-generator`
+            Fix the ValidatingPolicy/MutatingPolicy (or the PolicyExceptions feeding it), then check the
+            generated `vpol-<name>`/`mpol-<name>` object is up to date.
+          dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/Rg8lWBG7k/kyverno|link>"
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-24h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",kubernetes_pod_name=\"{{ $labels.kubernetes_pod_name }}\"} |= \"admissionpolicy-generator\" |= \"ERR\""}]|link>'
+
   - name: thanos
     rules:
       - alert: ThanosCompactHalted
@@ -243,6 +273,7 @@ groups:
           action: "Ask in slack for any alert changes and check {{ $labels.kubernetes_pod_name }} pod logs in {{ $labels.kubernetes_namespace}} namespace"
           dashboard: "<https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rjUCNfHmz/thanos-rule?refresh=30s&orgId=1&var-interval=1m&var-namespace={{ $labels.kubernetes_namespace}}&var-labelselector=app&var-labelvalue=thanos-rule|link>"
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.kubernetes_namespace}}\",kubernetes_pod_name=\"{{$labels.kubernetes_name}}.*\",container=\"thanos-rule\"}"}]|link>'
+
   - name: external-dns
     rules:
       - alert: ExternalDnsRegistryErrors
@@ -261,6 +292,7 @@ groups:
         annotations:
           description: "{{ $labels.kubernetes_pod_name }} errors while talking to kube api"
           summary: "external-dns source errors"
+
   - name: etcd
     rules:
       - alert: KubernetesEtcdNodeDown
@@ -352,6 +384,7 @@ groups:
           summary: "Etcd backup jobs have not completed in the last 30h"
           action: "Check cronjob status and job logs "
           logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{$labels.kubernetes_cluster}}\",kubernetes_namespace=\"{{$labels.namespace}}\",container=\"{{$labels.container}}\"}"}]|link>'
+
   - name: tls-probe-traefik
     rules:
       - alert: TLSProbeTargetDown
@@ -377,6 +410,7 @@ groups:
         annotations:
           summary: "{{ $labels.instance }} certificate expires in {{ $value | humanizeDuration }}"
           description: 'SSL Certificate will expire on {{ with query "probe_ssl_earliest_cert_expiry{job=~''^tls-cert-check.*$''}" }}{{ . | first | value | humanizeTimestamp }}{{ end }}.'
+
   - name: vault
     # Recommendations from https://s3-us-west-2.amazonaws.com/hashicorp-education/whitepapers/Vault/Vault-Consul-Monitoring-Guide.pdf
     rules:
@@ -445,6 +479,7 @@ groups:
         annotations:
           description: "{{ $labels.instance }} http probe job reports down more than 5 minutes."
           summary: "Vault server http probe job down"
+
   - name: semaphore
     rules:
       - alert: SemaphorePolicyCalicoClientErrors
