@@ -1,0 +1,33 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+groups:
+  - name: eqdb-sync
+    rules:
+      - alert: EqdbSnapshotMissing
+        # The watcher snapshots once a night from about 03:50 UTC and takes about
+        # 20 minutes, so the gap between two finished snapshots is 24h, and 26h is
+        # two hours of slack. The gauge restarts at 0 with the pod, so the newest
+        # value over a week and over every pod is the one that counts.
+        expr: "time() - max by (kubernetes_cluster, kubernetes_namespace) (max_over_time(eqdb_sync_snapshot_finished_timestamp_seconds{kubernetes_namespace=\"sys-bill-backups\"}[7d])) > 26 * 3600"
+        for: 30m
+        labels:
+          team: infra
+        annotations:
+          summary: "No eqdb-sync snapshot has finished in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} for {{ $value | humanizeDuration }}."
+          impact: "The snapshot of the night is missing, so loads of today's snapshot wait or fail and the data in S3 gets older."
+          action: |
+            The snapshot is taken once a night, when the share marker is refreshed, so a failed run and a night that never started look the same here.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/snapshot-watch -c snapshot --since=24h | grep -v "nothing to do"`
+            Check that the marker is no older than 6 hours and that it is inside 03:00-15:00 UTC, then the NFS mount and the S3 bucket.
+      - alert: EqdbSnapshotWatchDown
+        expr: "max by (kubernetes_cluster, kubernetes_namespace) (up{kubernetes_namespace=\"sys-bill-backups\", name=\"snapshot-watch\", job=\"kubernetes-pods\"}) == 0"
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "The eqdb-sync snapshot watcher in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} is not answering metric scrapes."
+          impact: "The nightly snapshot may not be taken, and its failures are not seen."
+          action: |
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} get pod -l name=snapshot-watch`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} describe deploy snapshot-watch`
