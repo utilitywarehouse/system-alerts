@@ -15,17 +15,6 @@ groups:
           dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1&viewPanel=684"
           runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-under-replicated-partitions"
           priority: P1
-      - alert: MSKAbnormalControllerState
-        expr: sum by (job) (kafka_controller_KafkaController_Value{name="ActiveControllerCount", job=~"msk.*"}) != 1
-        for: 5m
-        labels:
-          team: infra
-          group: kafka
-        annotations:
-          summary: "In MSK instance {{ $labels.job }}, there are {{ $value }} active controllers"
-          dashboard: "https://grafana.$ENVIRONMENT.$PROVIDER.uw.systems/d/rrE2HgHVz/msk-kafka-metrics?orgId=1"
-          runbook: "https://github.com/utilitywarehouse/documentation/blob/master/infra/operational/msk-ops.md#msk-abnormal-controller-state"
-          priority: P1
       - alert: MSKOfflinePartitions
         expr: sum by (job) (kafka_controller_KafkaController_Value{name="OfflinePartitionsCount", job=~"msk.*"}) > 0
         for: 5m
