@@ -6,6 +6,8 @@ Contains alerts templates under a single base
 - cis-aws: Contains templates for alerts based on CIS Benchmark for AWS
 - global: root folder for alerts that depend on metrics spread across clusters. These are meant to be installed on the thanos-rule-global instance, which queries thanos-query-global.
 - kube-applier: Contains templates for kube-applier alerts
+- eqdb-sync-central: Contains templates for the central parts of eqdb-sync, the nightly snapshots and the delta computations that the clients load from. It is a plain folder of templates, so a cluster that runs them adds the folder to its git-mirror pathspecs
+- eqdb-sync-client: Contains templates for the clients of eqdb-sync, the `sync-deltas` commands that keep Postgres tables current from the nights the central delta build writes. Same as eqdb-sync-central, a cluster adds the folder to its git-mirror pathspecs
 
 # Patch thanos-rule deployment
 

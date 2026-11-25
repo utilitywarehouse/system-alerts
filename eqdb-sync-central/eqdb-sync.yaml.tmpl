@@ -1,0 +1,75 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+# The central parts of eqdb-sync: the nightly snapshot watcher and the delta
+# build (`eqdb-sync delta`). The clients that load tables into Postgres
+# (`load-snapshot`, `sync-deltas`) run per consumer and are not covered here.
+
+groups:
+  - name: eqdb-sync
+    rules:
+      - alert: EqdbSnapshotMissing
+        # The watcher snapshots once a night from about 03:50 UTC and takes about
+        # 20 minutes, so the gap between two finished snapshots is 24h, and 26h is
+        # two hours of slack. The gauge restarts at 0 with the pod, so the newest
+        # value over a week and over every pod is the one that counts.
+        expr: "time() - max by (kubernetes_cluster, kubernetes_namespace) (max_over_time(eqdb_sync_snapshot_finished_timestamp_seconds{kubernetes_namespace=\"sys-bill-backups\"}[7d])) > 26 * 3600"
+        labels:
+          team: infra
+        annotations:
+          summary: "No eqdb-sync snapshot has finished in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} for {{ $value | humanizeDuration }}."
+          impact: "The snapshot of the night is missing, so loads of today's snapshot wait or fail and the data in S3 gets older."
+          action: |
+            The snapshot is taken once a night, when the share marker is refreshed, so a failed run and a night that never started look the same here.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/snapshot-watch -c snapshot --since=24h | grep -v "nothing to do"`
+            Check that the marker is no older than 6 hours and that it is inside 03:00-15:00 UTC, then the NFS mount and the S3 bucket.
+      - alert: EqdbDeltaNightMissing
+        # eqdb-delta finished a night at 04:05-04:13 UTC every day for the last two
+        # weeks, a gap of 24.1h at most, so 26h is two hours of slack. The gauge is
+        # unset until the pod has built a night, so the newest value over a week and
+        # over every pod is the one that counts.
+        expr: "time() - max by (kubernetes_cluster, kubernetes_namespace) (max_over_time(eqdb_delta_night_built_timestamp_seconds[7d])) > 26 * 3600"
+        labels:
+          team: infra
+        annotations:
+          summary: "No eqdb-delta night has finished building in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} for {{ $value | humanizeDuration }}."
+          impact: "sync-deltas has no new night to apply, so the Postgres tables fall further behind EQDB each day."
+          action: |
+            The night is built once a day after the share marker is refreshed, so a night that failed, one that is still retrying and one that never started look the same here.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} get pods -l app.kubernetes.io/name=eqdb-delta`
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/eqdb-delta --since=24h | grep -E "night failed|built night|outside the share window"`
+            Check for a failed night retrying with a growing wait, then the raw prefix in S3, the stage volume space and the S3 credentials.
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-24h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\"}"}]|link>'
+      - alert: EqdbDeltaNightSlow
+        # Nights built in 1054-1530s since 12 November, and in 4500-8000s on the
+        # old StatefulSet. 3600s is more than twice the slowest recent night. The
+        # gauge keeps the last night's value, so this clears once a faster night is
+        # built.
+        expr: "max by (kubernetes_cluster, kubernetes_namespace) (eqdb_delta_night_build_seconds) > 3600"
+        labels:
+          team: infra
+        annotations:
+          summary: "The last eqdb-delta night in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} took {{ $value | humanizeDuration }} to build."
+          impact: "Nights land later than the sync-deltas window expects, and a build that keeps slowing will start to overlap the next night."
+          action: |
+            Leading indicator: the night was built, but much slower than the 20 minutes it takes now.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} top pod -l app.kubernetes.io/name=eqdb-delta`
+            Check for CPU throttling, a slow stage volume or S3, or a night that failed part way and was retried.
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-24h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\"}"}]|link>'
+      - alert: EqdbDeltaNightFailing
+        # delta retries a failed night with a wait that doubles from 5m up to 1h,
+        # so a night that cannot be built adds about one failure an hour. Two in
+        # two hours skips a one-off blip (a pod roll, an S3 hiccup that the first
+        # retry fixes) and still fires about 22h before EqdbDeltaNightMissing.
+        # The counter exists at 0 from the start, so the first failure counts.
+        expr: "sum by (kubernetes_cluster, kubernetes_namespace) (increase(eqdb_delta_night_failures_total[2h])) >= 2"
+        labels:
+          team: infra
+        annotations:
+          summary: "eqdb-delta failed to build a night {{ $value }} times in 2h in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }}."
+          impact: "The night is not built, so sync-deltas has nothing new to apply and the Postgres tables fall behind EQDB until a retry succeeds."
+          action: |
+            Leading indicator: delta keeps the tables that finished and retries the rest, with a wait that grows to an hour.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/eqdb-delta --since=6h | grep "night failed"`
+            Check the error in the log, then the raw prefix in S3, the stage volume space and the S3 credentials. SIGHUP the pod to retry at once after a fix.
+          logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-6h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\"} |= \"night failed\""}]'
