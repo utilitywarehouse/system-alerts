@@ -1,0 +1,98 @@
+# PROMETHEUS RULES
+# DO NOT REMOVE line above, used in `pre-commit` hook
+
+# The client side of eqdb-sync: `eqdb-sync sync-deltas`, which loads tables into
+# Postgres and keeps them current from the nights `eqdb-sync delta` builds. The
+# central parts (snapshots and delta builds) are in eqdb-sync-central. A client
+# is one Deployment per config, so every rule keeps the app name to point at it.
+
+groups:
+  - name: eqdb-sync-deltas
+    rules:
+      - alert: EqdbSyncDeltasBehind
+        # A table's night is the midnight UTC it is at, and a night is applied
+        # about 04:00-05:00 UTC the same day, so the lag of the oldest table runs
+        # from about 5h to 29h and p95 over 30 days is 26.5h, max 28h. 30h is just
+        # above that, so a night applied more than an hour late fires, and a missed
+        # one fires by about 06:00 UTC.
+        expr: "max by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name) (time() - eqdb_sync_delta_night_applied) > 30 * 3600"
+        for: 30m
+        labels:
+          team: infra
+        annotations:
+          summary: "The oldest table of {{ $labels.app_kubernetes_io_name }} in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} is at a night {{ $value | humanizeDuration }} old."
+          impact: "Consumers read Postgres tables that miss at least one night of changes."
+          action: |
+            At least one table has not got the last night, whether the night was never built, a table waits for a full load, or applying it keeps failing.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/{{ $labels.app_kubernetes_io_name }} --since=6h | grep -E "applying deltas|waiting|failed"`
+            Check that `EqdbDeltaNightMissing` is not firing for the central delta build first, then which table is behind with `time() - eqdb_sync_delta_night_applied{app_kubernetes_io_name="{{ $labels.app_kubernetes_io_name }}"}`.
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-6h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\",app_kubernetes_io_name=\"{{ $labels.app_kubernetes_io_name }}\"}"}]|link>'
+      - alert: EqdbSyncDeltasApplyFailing
+        # sync-deltas retries every --wait-interval (30s), so a failure that
+        # lasts adds an error a pass for each table, and one that a retry fixes
+        # drops out of the window before 15m. There were no errors in 30 days.
+        expr: "sum by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name) (increase(eqdb_sync_delta_runs_total{status=\"error\"}[15m])) > 0"
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.app_kubernetes_io_name }} in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} has failed to bring tables up to date for 15m."
+          impact: "A night is applied for all tables in one transaction, so none of the tables moves on until the failure is fixed."
+          action: |
+            Leading indicator of EqdbSyncDeltasBehind: a night is retried every 30s and rolled back whole.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/{{ $labels.app_kubernetes_io_name }} --since=1h | grep "applying deltas"`
+            Check the error for the table: Postgres reachable and with disk, a schema that no longer matches the night (a column the table lacks), or a night file missing in S3.
+          logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\",app_kubernetes_io_name=\"{{ $labels.app_kubernetes_io_name }}\"} |= \"applying deltas\""}]'
+      - alert: EqdbSyncDeltasReloadStuck
+        # The gauge is 1 while a table waits for a full load, which is refused or
+        # fails when it stays. Loads of the whole client took about 0.6h (config)
+        # and 1.2h (chain) a table in the test deployments, so 3h is about
+        # 2.5 times the slowest.
+        expr: "max by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name, table, reason) (eqdb_sync_delta_reload_pending) == 1"
+        for: 3h
+        labels:
+          team: infra
+        annotations:
+          summary: "Table {{ $labels.table }} of {{ $labels.app_kubernetes_io_name }} in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} has waited 3h for a full load ({{ $labels.reason }})."
+          impact: "The table is not updated while it waits, so consumers read old data from it."
+          action: |
+            The reason says why the table needs a full load: `new` has no night yet, `config` had its columns or filter changed, `chain` is no longer reached by the nights and `signal` was asked for with SIGHUP.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/{{ $labels.app_kubernetes_io_name }} --since=6h | grep -i -E "load|snapshot"`
+            Check that a snapshot with a night exists for the table under the table root, that `eqdb-sync delta` has built the night of it (a table at a night that is not built waits for it), and that Postgres has room for a second copy.
+          logs: '<https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-6h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\",app_kubernetes_io_name=\"{{ $labels.app_kubernetes_io_name }}\"}"}]|link>'
+      - alert: EqdbSyncDeltasLoadFailing
+        # A full load that fails backs off from --wait-interval, doubling up to a
+        # cap, and does not fail the pass, so EqdbSyncDeltasApplyFailing never
+        # sees it. Loads are rare (a new table, a config change, a chain break),
+        # and there were no errors in 30 days, so one error in the hour is a
+        # real failure. The counter starts at 0, so the first one counts.
+        expr: "sum by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name) (increase(eqdb_sync_delta_loads_total{status=\"error\"}[1h])) > 0"
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.app_kubernetes_io_name }} in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} failed a full table load {{ $value | printf \"%.0f\" }} times in the last hour."
+          impact: "The table that needs the load is not updated until a retry works, so consumers read old data from it or have none."
+          action: |
+            Leading indicator of EqdbSyncDeltasReloadStuck: the load is retried with a wait that doubles, so a fix can take a while to show.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/{{ $labels.app_kubernetes_io_name }} --since=2h | grep -i -E "load|snapshot"`
+            Check the error for the table: a snapshot without a night or off the chain of nights, Postgres space or locks, a column the snapshot lacks, or S3 access. SIGHUP the pod to retry at once after a fix.
+          logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-2h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\",app_kubernetes_io_name=\"{{ $labels.app_kubernetes_io_name }}\"} |~ \"(?i)load|snapshot\""}]'
+      - alert: EqdbSyncDeltasSinkFailing
+        # The completion event goes out once a night, after a pass that applied
+        # something, and a failed send (it gives up after 30s) is tried again
+        # after the next pass. So errors with no ok in the same window mean the
+        # event is not getting out, and an error that the retry fixes is not
+        # counted. No client has set --sink-url for long, so there is no history
+        # to size the window from.
+        expr: "(sum by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name) (increase(eqdb_sync_delta_sink_sends_total{status=\"error\"}[30m])) > 0) unless (sum by (kubernetes_cluster, kubernetes_namespace, app_kubernetes_io_name) (increase(eqdb_sync_delta_sink_sends_total{status=\"ok\"}[30m])) > 0)"
+        for: 15m
+        labels:
+          team: infra
+        annotations:
+          summary: "{{ $labels.app_kubernetes_io_name }} in {{ $labels.kubernetes_cluster }}/{{ $labels.kubernetes_namespace }} has failed to send the completion event for 15m."
+          impact: "Consumers of the sink topic are not told that the load is complete, so they wait or work with the night before, though Postgres is up to date."
+          action: |
+            The tables are fine and only the event is stuck. An outage of Kafka after the start fails the sends but does not stop the command.
+            `kubectl --context {{ $labels.kubernetes_cluster }} -n {{ $labels.kubernetes_namespace }} logs deploy/{{ $labels.app_kubernetes_io_name }} --since=1h | grep "publishing the completion event"`
+            Check the error for the broker, the TLS certificates (`UW_KAFKA_TLS_AUTH`) and the topic and max message size in the `--sink-url`. The event is retried after each pass, so it goes out by itself once Kafka is back.
+          logs: 'https://grafana.$ENVIRONMENT.aws.uw.systems/explore?left=["now-1h","now","Loki",{"expr":"{kubernetes_cluster=\"{{ $labels.kubernetes_cluster }}\",namespace=\"{{ $labels.kubernetes_namespace }}\",app_kubernetes_io_name=\"{{ $labels.app_kubernetes_io_name }}\"} |= \"publishing the completion event\""}]'
